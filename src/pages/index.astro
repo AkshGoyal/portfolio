@@ -1,0 +1,135 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Tag from '../components/Tag.astro';
+
+const projects = (await getCollection('work')).sort(
+  (a, b) => a.data.order - b.data.order
+);
+
+const roles = ['AI Engineer', 'Forward Deployed Engineer', 'AI Product roles'];
+
+const contacts = [
+  { label: 'Email', value: 'aksh.iitdelhi@gmail.com', href: 'mailto:aksh.iitdelhi@gmail.com' },
+  { label: 'GitHub', value: 'github.com/akshgoyal', href: 'https://github.com/akshgoyal' },
+  {
+    label: 'LinkedIn',
+    value: 'linkedin.com/in/akshgoyal',
+    href: 'https://linkedin.com/in/akshgoyal',
+  },
+];
+---
+
+<BaseLayout
+  title="Aksh Goyal — AI Engineer"
+  description="I turn messy, real-world problems into working AI tools — from pharma market intelligence to agents that run my own job search."
+>
+  <div class="mx-auto max-w-3xl px-6 sm:px-8">
+    <section class="pt-16 pb-14 sm:pt-20">
+      <h1
+        class="font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl"
+      >
+        Aksh Goyal
+      </h1>
+      <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl">
+        I turn messy, real-world problems into working AI tools — from pharma
+        market intelligence to agents that run my own job search.
+      </p>
+
+      <div class="mt-7 flex flex-wrap gap-2">
+        {roles.map((role) => <Tag label={role} />)}
+      </div>
+
+      <div class="mt-9 flex flex-wrap gap-3">
+        <a
+          href="#work"
+          class="rounded-[3px] bg-accent px-4 py-2.5 font-mono text-[0.8125rem] text-white transition-opacity hover:opacity-88"
+          >View work</a
+        >
+        <a
+          href="/resume.pdf"
+          class="rounded-[3px] border border-line px-4 py-2.5 font-mono text-[0.8125rem] text-ink transition-colors hover:border-accent hover:text-accent"
+          >Resume</a
+        >
+      </div>
+    </section>
+
+    <section id="work" class="scroll-mt-8 border-t border-line py-12">
+      <h2 class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted">
+        Work
+      </h2>
+
+      <ul class="mt-7">
+        {
+          projects.map((project) => (
+            <li class="border-line not-first:border-t">
+              <a
+                href={`/work/${project.id}/`}
+                class="group -mx-4 block px-4 py-7 transition-colors hover:bg-surface"
+              >
+                <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+                  <h3 class="font-display text-xl font-semibold tracking-tight text-ink underline-offset-4 transition-colors group-hover:text-accent group-hover:underline">
+                    {project.data.title}
+                  </h3>
+                  <p class="font-mono text-[0.75rem] text-muted">
+                    {project.data.stack.join(' · ')}
+                  </p>
+                </div>
+                <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+                  {project.data.tagline}
+                </p>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+
+    <section class="border-t border-line py-12">
+      <h2 class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted">
+        Experience
+      </h2>
+
+      <div class="mt-7">
+        <div
+          class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1"
+        >
+          <h3 class="font-display text-lg font-semibold tracking-tight text-ink">
+            Analyst — Aspect Ratio
+          </h3>
+          <p class="font-mono text-[0.75rem] text-muted">Jun 2025 – Aug 2026</p>
+        </div>
+        <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+          AI &amp; strategy consulting. Supporting a large pharma company's
+          Vaccines Commercial Team on AI strategy and market intelligence.
+        </p>
+      </div>
+    </section>
+
+    <section id="contact" class="scroll-mt-8 border-t border-line py-12">
+      <h2 class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted">
+        Contact
+      </h2>
+
+      <dl class="mt-7">
+        {
+          contacts.map((contact) => (
+            <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1 py-2">
+              <dt class="w-20 shrink-0 text-[0.9375rem] text-muted">
+                {contact.label}
+              </dt>
+              <dd class="font-mono text-[0.875rem]">
+                <a
+                  href={contact.href}
+                  class="text-ink underline-offset-4 transition-colors hover:text-accent hover:underline"
+                >
+                  {contact.value}
+                </a>
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+  </div>
+</BaseLayout>

@@ -1,0 +1,125 @@
+---
+title: 'Momentum'
+repo: 'AkshGoyal/ProductivityAgent'
+repoUrl: 'https://github.com/akshgoyal/ProductivityAgent'
+tagline: 'AI productivity coach that breaks goals into tasks and coaches you via a tool-calling chat agent.'
+stack: ['React', 'FastAPI', 'MongoDB', 'Claude']
+topics:
+  [
+    'react',
+    'fastapi',
+    'mongodb',
+    'llm',
+    'claude-api',
+    'productivity',
+    'tailwindcss',
+    'jwt-auth',
+  ]
+order: 2
+---
+
+import Todo from '../../components/Todo.astro';
+
+## Problem
+
+Generic task managers require you to do the hard part yourself: turning a vague
+goal into a concrete, doable plan. The original problem statement this app was
+built from asked for a productivity agent that helps manage tasks, calibrates
+them, takes goals and breaks them down, and knows your style of working and your
+mindset. The product is for one person managing their own tasks, goals and
+notes, calibrated to how they personally work.
+
+## What I built
+
+I wrote the product spec and prompt, directed the build on the Emergent AI
+app-building platform, then reviewed and iterated on the result myself.
+
+**In plain terms:** a web app where you set goals, and an AI coach breaks each
+one into 5–8 concrete tasks sized to be done in a single sitting, tailored to a
+working-style and mindset profile you set once. You can chat with the coach in a
+live, streaming conversation about what to work on. There's also a second, more
+autonomous chat mode — a persistent agent — that can directly create tasks,
+update task status, break down goals and add notes on your behalf
+mid-conversation, rather than just suggesting them.
+
+### Architecture
+
+```
+frontend/   React SPA (Dashboard, Tasks, Goals, Notes, Chat, Profile pages)
+            — talks to the backend only via REACT_APP_BACKEND_URL, all requests under /api
+backend/    FastAPI app (server.py) — auth, tasks, goals, notes, dashboard stats,
+            and three AI-backed endpoints:
+              POST /api/ai/breakdown-goal   goal -> 5-8 tasks (one-shot JSON)
+              GET  /api/chat/stream         coach chat (SSE)
+              POST /api/agent/chat          tool-calling agent (JSON reply + actions)
+            reads/writes MongoDB via Motor; JWT auth via httpOnly cookie
+MongoDB     users, tasks, goals, notes, chat_messages, agent_messages
+Claude      claude-sonnet-4-6, called via the emergentintegrations LLM client
+```
+
+The frontend never talks to MongoDB or the LLM directly — every request goes
+through the FastAPI backend, which is the only service holding the database
+connection and the LLM key.
+
+## Hard parts and decisions
+
+- **Whitelisted server-side execution of free-text LLM output.**
+  `/api/agent/chat` asks the model to return strict JSON (a `reply` string plus
+  an `actions` list), extracts it with a regex that tolerates stray prose or code
+  fences, then — before touching the database — re-validates every field of every
+  requested tool call against an explicit whitelist: `priority` must be
+  `low`/`medium`/`high` or it's coerced to `medium`, `status` updates are
+  rejected outright if not one of `todo`/`in_progress`/`done`, and an
+  `update_task` or `break_down_goal` call is rejected unless the referenced
+  `task_id`/`goal_id` already exists for that user. This is a manual, per-field
+  version of the validation FastAPI and Pydantic provide automatically on the
+  app's regular REST routes.
+- **Two coexisting auth modes.** There's a standard bcrypt + JWT email/password
+  flow (`/auth/register`, `/auth/login`), and separately a `GET /auth/session`
+  endpoint that silently creates-or-reuses one fixed owner account (given an
+  unusable random password hash) and logs the caller in as that user — a
+  single-user bypass that still reuses every `user_id`-scoped query from
+  multi-user mode. The single-user auto-login is the mode actually used day to
+  day; the multi-user register/login flow exists in the code but isn't the
+  active path.
+- **Per-turn context assembly with explicit bounding.** Both the streaming coach
+  and the tool-calling agent rebuild their system prompt from live tasks, goals
+  and notes on every single turn — not just from chat history — and explicitly
+  truncate the serialized text to keep the prompt bounded as the data grows,
+  rather than relying on the model's own context management.
+- **No schema on the LLM's JSON output.** Both `/api/ai/breakdown-goal` and
+  `/api/agent/chat` parse the model's reply with a permissive regex followed by
+  a bare `json.loads` in a `try`/`except`, falling back to treating the raw text
+  as the reply if parsing fails. That's workably resilient to a malformed reply,
+  but it also means a response containing two JSON-looking blocks, or valid JSON
+  in an unexpected shape, degrades silently instead of failing loudly — there's
+  no structured-output contract enforcing the shape the way there is for the
+  app's own database documents.
+- **No retry or backoff around LLM calls.** A failed streaming call raises
+  straight into a `500`, and the raised exception's string is included directly
+  in the HTTP error detail, which can surface library-internal error text to the
+  frontend.
+
+## Outcome
+
+I use Momentum myself, day to day. On the "100% tested" figure recorded in the
+repo's test reports: that isn't the platform's self-reported number taken at
+face value — I verified it myself by testing the app directly.
+
+<Todo>Outcome to be filled in.</Todo>
+
+## What I'd do next
+
+From the product's own prioritized backlog:
+
+- **P1:** a Pomodoro/focus timer, a calendar view, "plan my day" generation,
+  recurring tasks.
+- **P2:** analytics (streaks, priority mix), tags on notes, note-to-task
+  extraction via AI, email task reminders, a mobile-optimized nav.
+- **P3:** shareable public goal timelines, team and collaboration features,
+  Google Calendar and GitHub integrations.
+
+Separately, from reading the code rather than the backlog: replacing the
+regex-plus-`json.loads` parsing on both AI endpoints with an enforced
+structured-output schema, and adding retry and backoff around the LLM calls,
+which currently have none.
