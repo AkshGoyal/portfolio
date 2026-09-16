@@ -9,6 +9,14 @@ const projects = (await getCollection('work')).sort(
 
 const roles = ['AI Engineer', 'Forward Deployed Engineer', 'AI Product roles'];
 
+const highlights = [
+  'Owned an HCP persona-simulation chatbot end to end, from a brief with no internal precedent — framed the problem with the client’s marketing team, designed the architecture, shipped it over a local network. Validated by 10 users, then handed to a large consultancy for production build-out.',
+  'Architected its multi-agent RAG backend: routing agents directing queries across a hybrid retrieval stack (semantic vector search + BM25).',
+  'Built the evaluation framework that took it to 94% accuracy — designed test scenarios and failure paths, then iterated chunking, embedding and search strategy against measured results.',
+  'Built a tender guidance tool for the global vaccines bidding team spanning 40+ countries and 5 vaccines, putting pricing and bid-strategy guidance at the point of decision.',
+  'Wrote 4 web scrapers turning undocumented conference sites with no API into structured datasets, and ran an end-to-end SQL analysis of vaccine-effectiveness data behind a European surveillance report.',
+];
+
 const contacts = [
   { label: 'Email', value: 'aksh.iitdelhi@gmail.com', href: 'mailto:aksh.iitdelhi@gmail.com' },
   { label: 'GitHub', value: 'github.com/akshgoyal', href: 'https://github.com/akshgoyal' },
@@ -100,9 +108,21 @@ const contacts = [
           <p class="font-mono text-[0.75rem] text-muted">Jun 2025 – Aug 2026</p>
         </div>
         <p class="mt-3 max-w-2xl leading-relaxed text-muted">
-          AI &amp; strategy consulting. Supporting a large pharma company's
-          Vaccines Commercial Team on AI strategy and market intelligence.
+          AI &amp; strategy consulting. Embedded with the Vaccines Commercial
+          team of a global pharmaceutical company, building and shipping the AI
+          applications and internal tools used by its marketing, medical and
+          global bidding teams.
         </p>
+
+        <ul class="mt-5 max-w-2xl">
+          {
+            highlights.map((item) => (
+              <li class="relative mt-3 pl-6 leading-relaxed text-muted before:absolute before:left-0 before:top-[0.75em] before:h-px before:w-3 before:bg-line">
+                {item}
+              </li>
+            ))
+          }
+        </ul>
       </div>
     </section>
 
