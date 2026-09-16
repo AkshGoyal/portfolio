@@ -1,0 +1,59 @@
+---
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Tag from '../../components/Tag.astro';
+
+export const getStaticPaths = (async () => {
+  const projects = await getCollection('work');
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}) satisfies GetStaticPaths;
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+---
+
+<BaseLayout
+  title={`${project.data.title} — Aksh Goyal`}
+  description={project.data.tagline}
+>
+  <article class="mx-auto max-w-3xl px-6 sm:px-8">
+    <div class="py-10">
+      <a
+        href="/#work"
+        class="font-mono text-[0.8125rem] text-muted underline-offset-4 transition-colors hover:text-accent hover:underline"
+        >All projects</a
+      >
+    </div>
+
+    <header class="border-b border-line pb-10">
+      <h1
+        class="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
+      >
+        {project.data.title}
+      </h1>
+      <p class="mt-4 max-w-2xl text-lg leading-relaxed text-muted">
+        {project.data.tagline}
+      </p>
+
+      <div class="mt-6 flex flex-wrap gap-2">
+        {project.data.topics.map((topic) => <Tag label={topic} />)}
+      </div>
+
+      <p class="mt-6 font-mono text-[0.8125rem]">
+        <a
+          href={project.data.repoUrl}
+          class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
+          >{project.data.repo}</a
+        >
+      </p>
+    </header>
+
+    <div class="prose py-12">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
