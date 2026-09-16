@@ -1,0 +1,127 @@
+---
+title: 'Plan My Day'
+repo: 'AkshGoyal/ProductivityAgent'
+repoUrl: 'https://github.com/akshgoyal/ProductivityAgent'
+tagline: 'A productivity coach that breaks goals into tasks you can actually start, and tells you which ones to do today.'
+stack: ['Python', 'FastAPI', 'SQLite', 'Gemini']
+topics:
+  [
+    'python',
+    'fastapi',
+    'sqlite',
+    'llm',
+    'gemini-api',
+    'productivity',
+    'structured-outputs',
+    'pydantic',
+  ]
+order: 2
+---
+
+## Problem
+
+Generic task managers make you do the hard part yourself: turning a vague goal
+into a concrete, doable plan. "Launch the newsletter" isn't something you can
+sit down and start — you have to decompose it first, every time, and that
+friction is where intentions die.
+
+The other half of the problem is calibration. Generic productivity advice
+assumes a generic person. What I wanted was something that knew I do deep work
+in the morning and that I over-plan and under-ship, and that took that into
+account when deciding what today should look like.
+
+## What I built
+
+A single-user tool that runs on my own machine. I give it a goal; it breaks
+that goal into five to eight tasks small enough to finish in one sitting. Each
+morning it picks and orders what I should actually work on from everything
+that's open, against the hours I actually have. A coach chat talks through
+what's stuck, grounded in my real tasks, goals and notes rather than invented
+context. My data lives in a SQLite file I own.
+
+### The rebuild, and why
+
+The first version of this was built on a hosted AI app-building platform: I
+wrote the spec and the prompt, directed the build, then reviewed and iterated.
+It worked, and it taught me what I actually wanted the tool to do.
+
+It also had problems I could see once I read the generated code properly. It
+parsed the model's JSON out of free text with a regex and a bare `json.loads`,
+so a malformed reply degraded silently instead of failing loudly. It had no
+retry or backoff around the LLM calls. And it shipped an auth endpoint that
+silently logged *every* visitor into one shared account — harmless on
+localhost, a real hazard anywhere else.
+
+So I rebuilt it on a stack I run and maintain myself: **FastAPI + SQLite +
+Gemini**. The rebuild wasn't about the stack for its own sake; it was about
+fixing those three things properly and understanding every line.
+
+### Architecture
+
+```
+app/config.py    every setting in one place — model, paths, context limits
+app/db.py        SQLite schema and connection; re-runnable migrations
+app/models.py    Pydantic models: HTTP contracts and LLM output schemas
+app/llm.py       the single wrapper every Gemini call goes through
+app/context.py   database rows -> the bounded text blocks prompts interpolate
+app/prompts/     prompt templates as files, not f-strings in the routes
+app/repo.py      every SQL statement in the project
+app/api.py       routes, all under /api
+static/          one page, vanilla JS, no build step
+```
+
+Deterministic code does the work. The model is called at exactly three points
+where judgment is genuinely needed — breaking a goal down, ordering a day,
+coaching — and everything else is ordinary code you can read and test.
+
+## Hard parts and decisions
+
+- **Structured output instead of string-parsing.** Every call passes a Pydantic
+  model to Gemini as `response_schema` and gets a validated instance back.
+  Enumerated fields are `Literal[...]` types, so the model physically cannot
+  return a priority or a status that the database would reject — the failure is
+  caught at the schema boundary rather than by a defensive `if` three layers
+  later. This replaced the regex-and-`json.loads` approach the generated version
+  used.
+- **Verify generated ids against the database, don't trust them.** The
+  plan-my-day call asks the model to order *existing* tasks by id. Rather than
+  trusting the ids it returns, the route checks every one against real rows and
+  silently drops anything it doesn't recognise, so a hallucinated id can never
+  reach the UI. It's a small guard, and it has its own test that feeds the route
+  a fake id alongside real ones and asserts only the real ones survive.
+- **Retries aren't free, and the SDK doesn't tell you.** `google-genai` makes
+  exactly one attempt per call and raises immediately on a 429 or a transient
+  503 — unlike some other SDKs, which retry for you by default. That difference
+  is silent and easy to miss until the model is overloaded and the app simply
+  breaks. Setting `HttpRetryOptions` explicitly fixes it, and a unit test now
+  asserts the option is set so the behaviour can't regress quietly.
+- **Deleting a goal doesn't delete its work.** Tasks reference their goal with
+  `ON DELETE SET NULL`, so removing a goal orphans its tasks instead of
+  destroying them. Losing a week of logged work to a mis-click is exactly the
+  kind of thing that makes someone stop trusting a tool.
+- **Dropping the auth layer was the honest choice.** The generated version had
+  two auth paths, one of which was a shared-account bypass. Rather than keep
+  security theatre, the rebuild has no auth at all, binds to `127.0.0.1`, and
+  documents that clearly. Being a local single-user tool is a legitimate design
+  decision; pretending otherwise would be worse than either.
+- **Bounded context by construction.** Every prompt is built from capped
+  queries, so prompt size stays predictable as the database grows rather than
+  expanding until something truncates in a way nobody notices.
+
+The 26-test suite mocks the LLM client throughout, so it runs with no API key
+and makes no live model calls.
+
+## Outcome
+
+I use it. Goals that used to sit as one intimidating line now arrive as a list
+I can start on, and the day-planning step is the part I reach for most.
+
+## What I'd do next
+
+- A focus timer and a calendar view — the two things I most often want and
+  currently do elsewhere.
+- Recurring tasks, which the current schema doesn't model at all.
+- Turning a note into tasks directly, since notes are where the real thinking
+  lands and it's currently a manual copy across.
+- Streaming the coach's replies. The rebuild made them a single response for
+  simplicity, and for longer answers the wait is noticeable.
