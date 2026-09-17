@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 
@@ -9,6 +10,9 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+// Only emitted when the site URL is known, since og:image must be absolute —
+// a relative or placeholder URL is worse than no card at all.
+const ogImage = Astro.site ? new URL('/og.png', Astro.site).href : null;
 ---
 
 <!doctype html>
@@ -19,9 +23,22 @@ const { title, description } = Astro.props;
     <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    {
+      ogImage && (
+        <>
+          <meta property="og:image" content={ogImage} />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:image" content={ogImage} />
+        </>
+      )
+    }
+
     <link
       rel="preload"
       href="/fonts/space-grotesk-latin-wght-normal.woff2"
@@ -36,6 +53,27 @@ const { title, description } = Astro.props;
       type="font/woff2"
       crossorigin
     />
+
+    <ClientRouter />
+
+    <script is:inline>
+      // Runs before first paint: applies the saved theme so a returning
+      // visitor never sees a flash of the other one, and arms scroll reveals
+      // only when motion is welcome.
+      (function () {
+        try {
+          var saved = localStorage.getItem('theme');
+          if (saved === 'dark' || saved === 'light') {
+            document.documentElement.dataset.theme = saved;
+          }
+        } catch (e) {
+          /* private mode or blocked storage — fall back to the system theme */
+        }
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.documentElement.classList.add('js-reveal');
+        }
+      })();
+    </script>
   </head>
   <body class="min-h-screen flex flex-col">
     <Header />
@@ -43,5 +81,68 @@ const { title, description } = Astro.props;
       <slot />
     </main>
     <Footer />
+
+    <script>
+      const SELECTOR = '[data-reveal]';
+
+      function revealAll() {
+        const targets = document.querySelectorAll<HTMLElement>(SELECTOR);
+        if (!document.documentElement.classList.contains('js-reveal')) return;
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            for (const entry of entries) {
+              if (!entry.isIntersecting) continue;
+              const el = entry.target as HTMLElement;
+              const index = Number(el.dataset.revealIndex ?? 0);
+              el.style.setProperty('--reveal-delay', `${Math.min(index, 5) * 60}ms`);
+              el.classList.add('is-visible');
+              observer.unobserve(el);
+            }
+          },
+          { rootMargin: '0px 0px -10% 0px', threshold: 0.05 }
+        );
+
+        targets.forEach((el) => {
+          // Anything already on screen at load shows immediately, so the top
+          // of the page is never blank while waiting for a scroll.
+          if (el.getBoundingClientRect().top < window.innerHeight) {
+            el.classList.add('is-visible');
+          } else {
+            observer.observe(el);
+          }
+        });
+      }
+
+      // `window` survives client-router navigations, so the scroll listeners
+      // must only ever be attached once; the bar itself is re-queried on every
+      // update because the element is replaced with the page.
+      let progressWired = false;
+
+      function updateProgress() {
+        const bar = document.querySelector<HTMLElement>('.progress-bar');
+        if (!bar) return;
+        const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = scrollable > 0 ? window.scrollY / scrollable : 0;
+        bar.style.setProperty('--progress', String(Math.min(1, Math.max(0, ratio))));
+      }
+
+      function trackProgress() {
+        updateProgress();
+        if (progressWired) return;
+        window.addEventListener('scroll', updateProgress, { passive: true });
+        window.addEventListener('resize', updateProgress, { passive: true });
+        progressWired = true;
+      }
+
+      function init() {
+        revealAll();
+        trackProgress();
+      }
+
+      init();
+      // The client router swaps the document without a full reload.
+      document.addEventListener('astro:page-load', init);
+    </script>
   </body>
 </html>

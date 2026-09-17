@@ -1,0 +1,79 @@
+---
+// Toggles between light and dark and remembers the choice. Until someone
+// clicks it, the site follows the operating system.
+//
+// Which icon shows is decided purely in CSS from the same signals that drive
+// the palette (see global.css), so it is correct on first paint and needs no
+// JavaScript to stay in sync. `hidden` is deliberately not used here: SVG
+// elements don't implement that property, so toggling it from script silently
+// does nothing.
+---
+
+<button
+  id="theme-toggle"
+  type="button"
+  class="rounded-[3px] border border-line p-1.5 text-muted transition-colors hover:border-accent hover:text-accent"
+  aria-label="Switch between light and dark theme"
+>
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    aria-hidden="true"
+    class="icon-sun"
+  >
+    <circle cx="12" cy="12" r="4"></circle>
+    <path
+      d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
+    ></path>
+  </svg>
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+    class="icon-moon"
+  >
+    <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"></path>
+  </svg>
+</button>
+
+<script>
+  function wire() {
+    const button = document.getElementById('theme-toggle');
+    if (!button) return;
+    // This runs on first load and again on astro:page-load. Without a guard
+    // the listener binds twice and every click toggles twice, landing back on
+    // the theme it started from.
+    if (button.dataset.wired === 'true') return;
+    button.dataset.wired = 'true';
+
+    button.addEventListener('click', () => {
+      const explicit = document.documentElement.dataset.theme;
+      const isDark =
+        explicit === 'dark' ||
+        (explicit !== 'light' &&
+          window.matchMedia('(prefers-color-scheme: dark)').matches);
+      const next = isDark ? 'light' : 'dark';
+
+      document.documentElement.dataset.theme = next;
+      try {
+        localStorage.setItem('theme', next);
+      } catch (e) {
+        /* storage blocked — the choice just won't survive a reload */
+      }
+    });
+  }
+
+  wire();
+  document.addEventListener('astro:page-load', wire);
+</script>
