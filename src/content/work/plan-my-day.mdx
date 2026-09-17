@@ -19,6 +19,8 @@ topics:
 order: 2
 ---
 
+import Pipeline from '../../components/Pipeline.astro';
+
 ## Problem
 
 Generic task managers make you do the hard part yourself: turning a vague goal
@@ -59,21 +61,41 @@ fixing those three things properly and understanding every line.
 
 ### Architecture
 
-```
-app/config.py    every setting in one place — model, paths, context limits
-app/db.py        SQLite schema and connection; re-runnable migrations
-app/models.py    Pydantic models: HTTP contracts and LLM output schemas
-app/llm.py       the single wrapper every Gemini call goes through
-app/context.py   database rows -> the bounded text blocks prompts interpolate
-app/prompts/     prompt templates as files, not f-strings in the routes
-app/repo.py      every SQL statement in the project
-app/api.py       routes, all under /api
-static/          one page, vanilla JS, no build step
-```
-
 Deterministic code does the work. The model is called at exactly three points
 where judgment is genuinely needed — breaking a goal down, ordering a day,
-coaching — and everything else is ordinary code you can read and test.
+coaching. What's worth showing is what happens *around* those calls, and the
+plan-my-day path is the clearest example:
+
+<Pipeline
+  stages={[
+    {
+      kind: 'code',
+      label: 'Build bounded context',
+      note: 'Open tasks, active goals and recent notes, each from a capped query, so the prompt stays a predictable size however much has piled up.',
+    },
+    {
+      kind: 'llm',
+      label: 'Ask for today, by task id',
+      note: 'The model orders work that already exists rather than inventing any. A Pydantic model goes along as the response schema, so the reply comes back parsed or not at all.',
+    },
+    {
+      kind: 'guard',
+      label: 'Verify every id against the database',
+      note: 'Anything that does not match a real row is dropped, so a hallucinated task cannot reach the screen. A test feeds the route a fake id alongside real ones to prove it.',
+    },
+    {
+      kind: 'output',
+      label: "Today's plan",
+      note: 'An ordered handful of real tasks, each with a one-line reason.',
+    },
+  ]}
+  caption="Goal breakdown and the coach chat follow the same shape: bounded context in, schema-checked response out, verified before anything is written."
+/>
+
+The rest is small and deliberately boring: `app/llm.py` is the single wrapper
+every Gemini call goes through, `app/repo.py` holds every SQL statement,
+`app/prompts/` keeps prompts as files rather than f-strings buried in routes,
+and the UI is one static page with no build step.
 
 ## Hard parts and decisions
 
