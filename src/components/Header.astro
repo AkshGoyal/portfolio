@@ -1,4 +1,6 @@
 ---
+import ThemeToggle from './ThemeToggle.astro';
+
 const links = [
   { href: '/#work', label: 'Work' },
   { href: '/resume.pdf', label: 'Resume' },
@@ -26,6 +28,7 @@ const links = [
           </a>
         ))
       }
+      <ThemeToggle />
     </nav>
   </div>
 </header>
