@@ -9,6 +9,21 @@ const projects = (await getCollection('work')).sort(
 
 const roles = ['AI Engineer', 'Forward Deployed Engineer', 'AI Product roles'];
 
+// The three numbers a recruiter should see without scrolling. All from the CV.
+const impact = [
+  { figure: '94%', label: 'accuracy, via an evaluation framework I built' },
+  { figure: '40+', label: 'countries covered by the tender guidance tool' },
+  { figure: '15', label: 'months embedded with a pharma commercial team' },
+];
+
+const highlights = [
+  'Owned an HCP persona-simulation chatbot end to end, from a brief with no internal precedent — framed the problem with the client’s marketing team, designed the architecture, shipped it over a local network. Validated by 10 users, then handed to a large consultancy for production build-out.',
+  'Architected its multi-agent RAG backend: routing agents directing queries across a hybrid retrieval stack (semantic vector search + BM25).',
+  'Built the evaluation framework that took it to 94% accuracy — designed test scenarios and failure paths, then iterated chunking, embedding and search strategy against measured results.',
+  'Built a tender guidance tool for the global vaccines bidding team spanning 40+ countries and 5 vaccines, putting pricing and bid-strategy guidance at the point of decision.',
+  'Wrote 4 web scrapers turning undocumented conference sites with no API into structured datasets, and ran an end-to-end SQL analysis of vaccine-effectiveness data behind a European surveillance report.',
+];
+
 const contacts = [
   { label: 'Email', value: 'aksh.iitdelhi@gmail.com', href: 'mailto:aksh.iitdelhi@gmail.com' },
   { label: 'GitHub', value: 'github.com/akshgoyal', href: 'https://github.com/akshgoyal' },
@@ -52,6 +67,21 @@ const contacts = [
           >Resume</a
         >
       </div>
+
+      <dl class="mt-12 grid gap-px border-y border-line sm:grid-cols-3">
+        {
+          impact.map((item, index) => (
+            <div class="py-5 sm:pr-6" data-reveal data-reveal-index={index}>
+              <dt class="font-display text-3xl font-semibold tracking-tight text-ink">
+                {item.figure}
+              </dt>
+              <dd class="mt-1 max-w-[22ch] text-[0.875rem] leading-snug text-muted">
+                {item.label}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
     </section>
 
     <section id="work" class="scroll-mt-8 border-t border-line py-12">
@@ -62,7 +92,7 @@ const contacts = [
       <ul class="mt-7">
         {
           projects.map((project) => (
-            <li class="border-line not-first:border-t">
+            <li class="border-line not-first:border-t" data-reveal data-reveal-index={1}>
               <a
                 href={`/work/${project.id}/`}
                 class="group -mx-4 block px-4 py-7 transition-colors hover:bg-surface"
@@ -90,7 +120,7 @@ const contacts = [
         Experience
       </h2>
 
-      <div class="mt-7">
+      <div class="mt-7" data-reveal>
         <div
           class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1"
         >
@@ -100,9 +130,21 @@ const contacts = [
           <p class="font-mono text-[0.75rem] text-muted">Jun 2025 – Aug 2026</p>
         </div>
         <p class="mt-3 max-w-2xl leading-relaxed text-muted">
-          AI &amp; strategy consulting. Supporting a large pharma company's
-          Vaccines Commercial Team on AI strategy and market intelligence.
+          AI &amp; strategy consulting. Embedded with the Vaccines Commercial
+          team of a global pharmaceutical company, building and shipping the AI
+          applications and internal tools used by its marketing, medical and
+          global bidding teams.
         </p>
+
+        <ul class="mt-5 max-w-2xl">
+          {
+            highlights.map((item) => (
+              <li class="relative mt-3 pl-6 leading-relaxed text-muted before:absolute before:left-0 before:top-[0.75em] before:h-px before:w-3 before:bg-line">
+                {item}
+              </li>
+            ))
+          }
+        </ul>
       </div>
     </section>
 
@@ -113,8 +155,12 @@ const contacts = [
 
       <dl class="mt-7">
         {
-          contacts.map((contact) => (
-            <div class="flex flex-wrap items-baseline gap-x-6 gap-y-1 py-2">
+          contacts.map((contact, index) => (
+            <div
+              class="flex flex-wrap items-baseline gap-x-6 gap-y-1 py-2"
+              data-reveal
+              data-reveal-index={index}
+            >
               <dt class="w-20 shrink-0 text-[0.9375rem] text-muted">
                 {contact.label}
               </dt>
