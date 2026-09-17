@@ -1,0 +1,186 @@
+---
+/**
+ * A data-flow diagram for a case study.
+ *
+ * The point it exists to make is which steps are ordinary deterministic code
+ * and which ones call a model — that split is the design decision worth
+ * showing, and a directory listing can't show it.
+ *
+ * Motion is decorative only: every node and its label render identically with
+ * the animation disabled, and the travelling pulse is dropped entirely under
+ * prefers-reduced-motion.
+ */
+
+type Kind = 'input' | 'code' | 'llm' | 'guard' | 'output';
+
+interface Stage {
+  label: string;
+  kind: Kind;
+  note?: string;
+}
+
+interface Props {
+  stages: Stage[];
+  caption?: string;
+}
+
+const { stages, caption } = Astro.props;
+
+const kindLabel: Record<Kind, string> = {
+  input: 'input',
+  code: 'code',
+  llm: 'model',
+  guard: 'guard',
+  output: 'output',
+};
+---
+
+<figure class="pipeline" data-reveal>
+  <ol class="pipeline-track">
+    {
+      stages.map((stage, index) => (
+        <li class={`pipeline-stage kind-${stage.kind}`} style={`--i: ${index}`}>
+          <div class="pipeline-node">
+            <span class="pipeline-kind">{kindLabel[stage.kind]}</span>
+            <span class="pipeline-label">{stage.label}</span>
+            {stage.note && <span class="pipeline-note">{stage.note}</span>}
+          </div>
+        </li>
+      ))
+    }
+  </ol>
+  {caption && <figcaption class="pipeline-caption">{caption}</figcaption>}
+</figure>
+
+<style>
+  .pipeline {
+    margin: 2rem 0;
+  }
+
+  .pipeline-track {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0;
+  }
+
+  .pipeline-stage {
+    position: relative;
+    padding-left: 1.75rem;
+    padding-bottom: 1rem;
+  }
+
+  .pipeline-stage:last-child {
+    padding-bottom: 0;
+  }
+
+  /* The rail every stage hangs off. */
+  .pipeline-stage::before {
+    content: '';
+    position: absolute;
+    left: 0.3125rem;
+    top: 1.15rem;
+    bottom: -0.35rem;
+    width: 1px;
+    background-color: var(--color-line);
+  }
+
+  .pipeline-stage:last-child::before {
+    display: none;
+  }
+
+  /* The dot marking each stage on the rail. */
+  .pipeline-stage::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    width: 0.6875rem;
+    height: 0.6875rem;
+    border-radius: 50%;
+    border: 1px solid var(--color-line);
+    background-color: var(--color-bg);
+  }
+
+  .pipeline-stage.kind-llm::after,
+  .pipeline-stage.kind-guard::after {
+    border-color: var(--color-accent);
+    background-color: var(--color-accent);
+  }
+
+  .pipeline-node {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+  }
+
+  .pipeline-kind {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: var(--color-muted);
+  }
+
+  .kind-llm .pipeline-kind,
+  .kind-guard .pipeline-kind {
+    color: var(--color-accent);
+  }
+
+  .pipeline-label {
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+
+  .pipeline-note {
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: var(--color-muted);
+    max-width: 52ch;
+  }
+
+  .pipeline-caption {
+    margin-top: 1rem;
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--color-muted);
+  }
+
+  /*
+   * A slow pulse travelling down the rail, so the diagram reads as a flow
+   * rather than a list. Purely decorative — opacity only, one property, on the
+   * compositor.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .pipeline-stage::before {
+      background-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--color-accent) 50%,
+        transparent 100%
+      );
+      background-size: 100% 220%;
+      background-repeat: no-repeat;
+      animation: pipeline-flow 2.6s linear infinite;
+      animation-delay: calc(var(--i) * 0.26s);
+    }
+
+    @keyframes pipeline-flow {
+      from {
+        background-position: 0 -120%;
+      }
+      to {
+        background-position: 0 220%;
+      }
+    }
+  }
+
+  /* Wider screens get more breathing room between stages. */
+  @media (min-width: 640px) {
+    .pipeline-stage {
+      padding-bottom: 1.25rem;
+    }
+  }
+</style>
