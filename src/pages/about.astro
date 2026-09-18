@@ -1,0 +1,211 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const education = [
+  {
+    line: 'B.Tech, Textile Engineering — Indian Institute of Technology Delhi',
+    meta: '2021 – 2025',
+  },
+  {
+    line: 'Minor Degree, Business Management — IIT Delhi',
+    meta: 'Mergers & Acquisitions, Managerial Accounting, Marketing Management, Intro to Computer Science',
+  },
+];
+
+const earlier = [
+  {
+    title: 'Summer Trainee, Public Sector Consulting — Grant Thornton Bharat',
+    meta: 'May – Jul 2024',
+    body: 'A large-scale human resource deployment programme for a major government department. I built the Power BI dashboard that tracked deployment status state-wise and designation-wise, analysed monthly performance reports to find leave trends and calculate penalties, and compiled 2,000+ compliance documents covering 287 deployed resources for client submission. Left with a letter of recommendation from the Associate Director.',
+  },
+  {
+    title: 'Summer Trainee — Grant Thornton Bharat',
+    meta: 'May – Jul 2023',
+    body: 'A citizen services delivery platform for a state government. I mapped and integrated citizen datasets in Alteryx into a unified state database, and built the Tableau dashboard — district and block-wise, 15+ schemes — that state leadership reviewed quarterly.',
+  },
+];
+
+const outside = [
+  {
+    title: 'Coordinator, Tryst — IIT Delhi',
+    meta: 'Jan – Apr 2024',
+    body: 'Led a three-tier team of 30 executives running the technical festival, and built out the guest lecture series end to end.',
+  },
+  {
+    title: 'Senior Member, ShARE — IIT Delhi',
+    meta: 'Jun 2022 – May 2023',
+    body: 'One of 8 selected from 100+ applicants. Designed and moderated a private equity panel with four senior professionals.',
+  },
+  {
+    title: 'Marketing Activity Head, Rendezvous — IIT Delhi',
+    meta: 'Jun 2022 – May 2023',
+    body: 'Pitched 100+ companies, drafted the proposals and agreements, and led a team of 5 managing 15+ sponsors.',
+  },
+];
+---
+
+<BaseLayout
+  title="About — Aksh Goyal"
+  description="How I got from textile engineering at IIT Delhi to building RAG systems and AI tools people actually use."
+>
+  <div class="mx-auto max-w-3xl px-6 sm:px-8">
+    <section class="pt-16 pb-12 sm:pt-20">
+      <h1
+        class="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
+      >
+        About
+      </h1>
+      <div class="mt-6 max-w-2xl space-y-5 text-lg leading-relaxed text-muted">
+        <p>
+          I build AI systems for people who don't care that they're AI systems —
+          they care that the tender answer is right, that the chatbot sounds
+          like a real physician, that today's plan is one they can actually
+          start on.
+        </p>
+        <p>
+          I didn't come to this through a computer science degree. I studied
+          textile engineering at IIT Delhi, spent two summers in public sector
+          consulting turning government data into dashboards people made
+          decisions from, and found that the part I was good at — and kept
+          being handed — was the gap between a vague business problem and
+          something that runs.
+        </p>
+        <p>
+          That turned into fifteen months embedded with the Vaccines Commercial
+          team of a global pharmaceutical company, where the brief was usually
+          a sentence and the first job was working out what it meant. It's also
+          why I build my own tools in the evenings: the fastest way I know to
+          understand a technology is to depend on it.
+        </p>
+      </div>
+    </section>
+
+    <section class="border-t border-line py-12">
+      <h2
+        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
+      >
+        Education
+      </h2>
+      <dl class="mt-7">
+        {
+          education.map((item, index) => (
+            <div
+              class="border-line py-4 not-first:border-t"
+              data-reveal
+              data-reveal-index={index}
+            >
+              <dt class="font-display text-[1.0625rem] font-semibold tracking-tight text-ink">
+                {item.line}
+              </dt>
+              <dd class="mt-1 max-w-2xl text-[0.875rem] leading-relaxed text-muted">
+                {item.meta}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+      <p class="mt-6 max-w-2xl leading-relaxed text-muted">
+        Before that: JEE Mains 2021 rank 794, in the top 0.07% of over a million
+        candidates, and an NTSE Stage-1 qualification.
+      </p>
+    </section>
+
+    <section class="border-t border-line py-12">
+      <h2
+        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
+      >
+        Earlier work
+      </h2>
+      <div class="mt-7">
+        {
+          earlier.map((item, index) => (
+            <div
+              class="border-line py-6 not-first:border-t"
+              data-reveal
+              data-reveal-index={index}
+            >
+              <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                <h3 class="font-display text-[1.0625rem] font-semibold tracking-tight text-ink">
+                  {item.title}
+                </h3>
+                <p class="font-mono text-[0.75rem] text-muted">{item.meta}</p>
+              </div>
+              <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+                {item.body}
+              </p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="border-t border-line py-12">
+      <h2
+        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
+      >
+        Outside the job description
+      </h2>
+      <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
+        Most of what I know about stakeholders, deadlines and people who
+        disagree with each other, I learned running student organisations
+        before anyone was paying me to.
+      </p>
+      <div class="mt-7">
+        {
+          outside.map((item, index) => (
+            <div
+              class="border-line py-6 not-first:border-t"
+              data-reveal
+              data-reveal-index={index}
+            >
+              <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                <h3 class="font-display text-[1.0625rem] font-semibold tracking-tight text-ink">
+                  {item.title}
+                </h3>
+                <p class="font-mono text-[0.75rem] text-muted">{item.meta}</p>
+              </div>
+              <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+                {item.body}
+              </p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="border-t border-line py-12">
+      <h2
+        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
+      >
+        What I'm looking for
+      </h2>
+      <div class="mt-5 max-w-2xl space-y-4 leading-relaxed text-muted">
+        <p>
+          AI Engineer, Forward Deployed Engineer or AI Product roles — the ones
+          where the work is close to whoever has the problem. Open to
+          relocating, in India or internationally.
+        </p>
+        <p>
+          If you're hiring for something like that, the two case studies are the
+          fastest way to see how I think, and
+          <a
+            class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
+            href="mailto:aksh.iitdelhi@gmail.com">aksh.iitdelhi@gmail.com</a
+          > is the fastest way to reach me.
+        </p>
+      </div>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a
+          href="/#projects"
+          class="rounded-[3px] bg-accent px-4 py-2.5 font-mono text-[0.8125rem] text-on-accent transition-opacity hover:opacity-88"
+          >See the projects</a
+        >
+        <a
+          href="/resume.pdf"
+          class="rounded-[3px] border border-line px-4 py-2.5 font-mono text-[0.8125rem] text-ink transition-colors hover:border-accent hover:text-accent"
+          >Resume</a
+        >
+      </div>
+    </section>
+  </div>
+</BaseLayout>

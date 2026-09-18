@@ -1,5 +1,6 @@
 ---
 title: 'Job Search Assistant'
+kind: 'project'
 repo: 'AkshGoyal/Agent_JobApplications'
 repoUrl: 'https://github.com/akshgoyal/Agent_JobApplications'
 tagline: 'A human-in-the-loop AI job search assistant: ranks postings and drafts tailored CVs/cover letters. You apply manually.'
@@ -16,6 +17,7 @@ topics:
     'chrome-extension',
     'job-search',
   ]
+access: 'No hosted demo, on purpose: the profile/ directory it reads is my real CV and personal details, and a public copy would answer with them. The source is public and it runs against a profile you write yourself.'
 order: 1
 ---
 
@@ -162,3 +164,25 @@ Separately, the profile files (`facts.yaml`, `canned_answers.yaml`) still
 contain unfilled placeholders. Output quality for tailoring and answering
 depends on that profile being complete, which is a practical next step
 independent of any new feature.
+
+## Run it yourself
+
+The tool is only as good as the profile it reads, so step three is the one that
+matters. The test suite needs no API key — the LLM client is mocked throughout.
+
+```bash
+git clone https://github.com/AkshGoyal/Agent_JobApplications.git
+cd Agent_JobApplications
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env          # add your GEMINI_API_KEY
+export $(grep -v '^#' .env | xargs)
+
+# write your own profile/facts.yaml, narratives.md, canned_answers.yaml
+python -m cli.main ingest paste --url <job-url> --file jd.txt --rank
+python -m cli.main list --min-score 70
+python -m cli.main tailor <job_id>
+
+python -m web.app             # or the local web UI, http://localhost:8000
+```

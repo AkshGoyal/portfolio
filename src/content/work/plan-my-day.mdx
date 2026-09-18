@@ -1,5 +1,6 @@
 ---
 title: 'Plan My Day'
+kind: 'project'
 repo: 'AkshGoyal/ProductivityAgent'
 repoUrl: 'https://github.com/akshgoyal/ProductivityAgent'
 tagline: 'A productivity coach that breaks goals into tasks you can actually start, and tells you which ones to do today.'
@@ -16,6 +17,7 @@ topics:
     'structured-outputs',
     'pydantic',
   ]
+access: 'No hosted demo, on purpose: this is a single-user tool with no auth layer, and it binds to 127.0.0.1 for that reason. The source is public and it runs in three commands.'
 order: 2
 ---
 
@@ -148,3 +150,20 @@ I can start on, and the day-planning step is the part I reach for most.
   lands and it's currently a manual copy across.
 - Streaming the coach's replies. The rebuild made them a single response for
   simplicity, and for longer answers the wait is noticeable.
+
+## Run it yourself
+
+Three commands and your own Gemini key. The test suite needs neither — the LLM
+client is mocked throughout, so `pytest` runs offline.
+
+```bash
+git clone https://github.com/AkshGoyal/ProductivityAgent.git
+cd ProductivityAgent
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env          # add your GEMINI_API_KEY
+export $(grep -v '^#' .env | xargs)
+
+python -m app.main            # http://127.0.0.1:8000
+```

@@ -1,0 +1,139 @@
+---
+title: 'HCP Persona Chatbot'
+kind: 'employment'
+org: 'Aspect Ratio — embedded with a global pharmaceutical company'
+tagline: 'A simulated healthcare professional that a marketing team could practise on — owned end to end, from an unprecedented brief to a handover.'
+period: 'Jun 2025 – Aug 2026'
+stack: ['Python', 'OpenAI API', 'RAG', 'BM25', 'Vector search']
+topics:
+  [
+    'rag',
+    'multi-agent',
+    'hybrid-retrieval',
+    'bm25',
+    'evaluation',
+    'openai',
+    'pharma',
+  ]
+access: 'Client work — the code is the client’s and is not public. Everything below is written at the level of detail already on my CV.'
+order: 0
+---
+
+import Pipeline from '../../components/Pipeline.astro';
+
+## Problem
+
+Pharmaceutical marketing is written for doctors, but the people writing it
+rarely get to talk to many. Message testing means recruiting real healthcare
+professionals, which is slow, expensive and heavily governed — so most
+campaign copy gets refined on instinct and a handful of anecdotes.
+
+The Vaccines Commercial team I was embedded with wanted something they could
+rehearse on: a chatbot that answered as a specific kind of doctor would, out of
+the company's own research and literature rather than out of a general model's
+memory. There was no internal precedent for it. Nobody handed me a spec.
+
+## What I built
+
+A retrieval-augmented chatbot that plays a healthcare-professional persona and
+answers grounded in the client's own document library. The work was mine end to
+end: framing the problem with the marketing team, deciding the architecture,
+building it, measuring it, and shipping it over their local network for
+validation.
+
+It was validated by 10 users from the team, and then handed to a large
+consultancy to take through a production build-out — which is the outcome this
+kind of internal prototype is aiming for.
+
+### Architecture
+
+The interesting part isn't that it retrieves. It's that a single retrieval
+strategy was never good enough, so the system decides how to search before it
+searches.
+
+<Pipeline
+  stages={[
+    {
+      kind: 'code',
+      label: 'Structured extraction from PDFs',
+      note: 'The source material was research decks and literature, not clean text. Getting structure out of them — and keeping it — set the ceiling on everything downstream.',
+    },
+    {
+      kind: 'llm',
+      label: 'Routing agents',
+      note: 'A question about a specific product name and a question about clinical attitudes want different searches. The router decides which, rather than one strategy serving both badly.',
+    },
+    {
+      kind: 'code',
+      label: 'Hybrid retrieval',
+      note: 'Semantic vector search for meaning, BM25 for the exact terms — drug names, trial identifiers, abbreviations — that embeddings routinely blur together.',
+    },
+    {
+      kind: 'llm',
+      label: 'Answer in persona',
+      note: 'The retrieved evidence constrains what can be said; the persona shapes how it is said.',
+    },
+    {
+      kind: 'guard',
+      label: 'Evaluation framework',
+      note: 'A fixed set of scenarios and known failure paths, scored on every change, so “this feels better” could be replaced with a number.',
+    },
+  ]}
+  caption="Routing and hybrid retrieval were the two decisions that moved accuracy the most — and I only know that because the evaluation set existed first."
+/>
+
+## Hard parts and decisions
+
+- **Building the evaluation framework before tuning anything.** This is the
+  decision I'd defend hardest. RAG systems are easy to fiddle with and almost
+  impossible to improve blind — every change makes some answers better and some
+  worse, and without a fixed scorecard you optimise for whichever example you
+  happened to test. I wrote the scenarios and the failure paths first, then
+  iterated chunking, embedding and search strategy against measured results.
+  The system reached **94% accuracy** on that evaluation set. The number matters
+  much less than the fact that there was a number.
+- **Hybrid retrieval, because embeddings lose the exact words.** Semantic search
+  is excellent at "what do physicians worry about with this class of vaccine"
+  and unreliable at a specific brand name or trial code, where near-miss
+  neighbours look identical in vector space. BM25 handles exactly those. Running
+  both and merging was worth the extra complexity; picking one would have meant
+  choosing which half of the questions to answer badly.
+- **Routing instead of one universal pipeline.** Once both retrieval modes
+  existed, the question became which to use when — and that judgment is the kind
+  of thing a model is genuinely good at and a heuristic is not. Routing agents
+  send the query down the appropriate path, which kept each path simple enough
+  to reason about instead of accreting special cases.
+- **The PDFs were the real project.** Most of the early difficulty wasn't in
+  retrieval at all; it was in structured extraction from research documents that
+  were designed to be read by humans, not parsed. Retrieval quality is bounded
+  by what survives that step, which is why it's the first stage in the diagram
+  and not a footnote.
+- **Working without a precedent.** No template existed internally, so the first
+  weeks were spent with the marketing team turning "could a chatbot do message
+  testing" into something testable. Getting to a defensible definition of what
+  "good" meant was harder than any individual technical decision, and it's what
+  made the evaluation framework possible.
+
+## Also at Aspect Ratio
+
+Fifteen months embedded with the same client's marketing, medical and global
+bidding teams produced more than one thing:
+
+- **A tender guidance tool for the global vaccines bidding team**, spanning
+  **40+ countries and 5 vaccines**, putting pricing and bid-strategy guidance at
+  the point where a bid decision is actually made rather than in a document
+  nobody opens mid-deadline.
+- **Four web scrapers** turning undocumented conference sites — no API, no
+  export, structure changing between years — into structured datasets the
+  medical team could query.
+- **An end-to-end SQL analysis of vaccine-effectiveness data** that sat behind a
+  European surveillance report.
+
+## What this taught me
+
+Being embedded changes what the job is. The hard part was rarely the model; it
+was sitting with the people who'd use the thing, long enough to work out what
+they actually needed, and then being honest about what the technology could and
+couldn't deliver against that. The chatbot got handed on for production because
+it had been validated by real users and measured against a real evaluation set —
+not because it demoed well.
