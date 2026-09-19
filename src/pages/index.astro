@@ -3,9 +3,11 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Tag from '../components/Tag.astro';
 
-const projects = (await getCollection('work')).sort(
-  (a, b) => a.data.order - b.data.order
-);
+const entries = await getCollection('work');
+const projects = entries
+  .filter((entry) => entry.data.kind === 'project')
+  .sort((a, b) => a.data.order - b.data.order);
+const employment = entries.find((entry) => entry.data.kind === 'employment');
 
 const roles = ['AI Engineer', 'Forward Deployed Engineer', 'AI Product'];
 
@@ -14,9 +16,18 @@ const roles = ['AI Engineer', 'Forward Deployed Engineer', 'AI Product'];
 // who meets "40+ countries" before hearing about a tender tool has no idea
 // what is being counted.
 const impact = [
-  { figure: '94%', label: 'accuracy reached by the chatbot, once I had an evaluation framework measuring it' },
-  { figure: '40+', label: 'countries the vaccine tender tool covers, across 5 vaccines' },
-  { figure: '10', label: 'users who validated the chatbot before it was handed over' },
+  {
+    figure: '94%',
+    label: 'accuracy reached by the chatbot, once I had an evaluation framework measuring it',
+  },
+  {
+    figure: '40+',
+    label: 'countries the vaccine tender tool covers, across 5 vaccines',
+  },
+  {
+    figure: '10',
+    label: 'users who validated the chatbot before it was handed over',
+  },
 ];
 
 const highlights = [
@@ -27,9 +38,42 @@ const highlights = [
   'Wrote 4 web scrapers turning undocumented conference sites with no API into structured datasets, and ran an end-to-end SQL analysis of vaccine-effectiveness data behind a European surveillance report.',
 ];
 
+// Every claim here is something a reader can go and check in one of the two
+// public repositories, which is the only reason the section earns its space.
+const principles = [
+  {
+    title: 'Measure first, then tune',
+    body: 'RAG systems are easy to fiddle with and impossible to improve blind. On the chatbot I wrote the evaluation scenarios and failure paths before touching chunking, embeddings or search strategy — which is the only reason 94% means anything.',
+  },
+  {
+    title: 'Ordinary code by default, the model only where judgment is needed',
+    body: 'Plan My Day calls a model at exactly three points; the job assistant at two. Everything around them — ingestion, dedup, storage, ordering — is plain Python I can test without a network.',
+  },
+  {
+    title: 'Constrain the output, then verify it anyway',
+    body: 'Every call passes a Pydantic schema, and enumerated fields are Literal types so an invalid value cannot be returned. Then the code checks the result against the database: a task id that matches no real row is dropped before it reaches the screen.',
+  },
+  {
+    title: 'One wrapper, so a change stays small',
+    body: 'Every model call goes through a single file. Migrating the job assistant from Anthropic to Gemini touched four files and left the pipelines, CLI and prompts untouched.',
+  },
+  {
+    title: 'Say where the boundary is',
+    body: 'The job assistant reads Gmail strictly read-only and never sends anything. Plan My Day has no auth, so it binds to 127.0.0.1 and documents that rather than shipping security theatre. Neither has a hosted demo, for reasons I would rather state than hide.',
+  },
+];
+
 const contacts = [
-  { label: 'Email', value: 'aksh.iitdelhi@gmail.com', href: 'mailto:aksh.iitdelhi@gmail.com' },
-  { label: 'GitHub', value: 'github.com/akshgoyal', href: 'https://github.com/akshgoyal' },
+  {
+    label: 'Email',
+    value: 'aksh.iitdelhi@gmail.com',
+    href: 'mailto:aksh.iitdelhi@gmail.com',
+  },
+  {
+    label: 'GitHub',
+    value: 'github.com/akshgoyal',
+    href: 'https://github.com/akshgoyal',
+  },
   {
     label: 'LinkedIn',
     value: 'linkedin.com/in/akshgoyal',
@@ -53,9 +97,15 @@ const contacts = [
         I turn messy, real-world problems into working AI tools — from pharma
         market intelligence to agents that run my own job search.
       </p>
+      <p class="mt-4 max-w-2xl leading-relaxed text-muted">
+        Fifteen months embedded with the Vaccines Commercial team of a global
+        pharmaceutical company, building the RAG systems and internal tools
+        their marketing, medical and bidding teams use. IIT Delhi, 2025.
+      </p>
 
       <div class="mt-7 flex flex-wrap items-center gap-2">
-        <span class="mr-1 text-[0.875rem] text-muted">Looking for roles in</span>
+        <span class="mr-1 text-[0.875rem] text-muted">Looking for roles in</span
+        >
         {roles.map((role) => <Tag label={role} />)}
       </div>
 
@@ -70,11 +120,18 @@ const contacts = [
           class="rounded-[3px] border border-line px-4 py-2.5 font-mono text-[0.8125rem] text-ink transition-colors hover:border-accent hover:text-accent"
           >Resume</a
         >
+        <a
+          href="mailto:aksh.iitdelhi@gmail.com"
+          class="rounded-[3px] border border-line px-4 py-2.5 font-mono text-[0.8125rem] text-ink transition-colors hover:border-accent hover:text-accent"
+          >Email me</a
+        >
       </div>
     </section>
 
     <section id="experience" class="scroll-mt-8 border-t border-line py-12">
-      <h2 class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted">
+      <h2
+        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
+      >
         Experience
       </h2>
 
@@ -90,8 +147,8 @@ const contacts = [
         <p class="mt-3 max-w-2xl leading-relaxed text-muted">
           AI &amp; strategy consulting. For 15 months I was embedded with the
           Vaccines Commercial team of a global pharmaceutical company — sitting
-          with their marketing, medical and global bidding teams, turning
-          briefs with no internal precedent into software they use.
+          with their marketing, medical and global bidding teams, turning briefs
+          with no internal precedent into software they use.
         </p>
 
         <dl class="mt-7 grid gap-px border-y border-line sm:grid-cols-3">
@@ -118,30 +175,110 @@ const contacts = [
             ))
           }
         </ul>
+
+        {
+          employment && (
+            <p class="mt-6 font-mono text-[0.8125rem]">
+              <a
+                href={`/work/${employment.id}/`}
+                class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
+              >
+                Read how the chatbot was built
+              </a>
+            </p>
+          )
+        }
+      </div>
+
+      <div class="mt-10 border-t border-line pt-8" data-reveal>
+        <div
+          class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1"
+        >
+          <h3 class="font-display text-lg font-semibold tracking-tight text-ink">
+            Summer Trainee — Grant Thornton Bharat
+          </h3>
+          <p class="font-mono text-[0.75rem] text-muted">
+            2023 &amp; 2024, public sector consulting
+          </p>
+        </div>
+        <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+          Two summers on government engagements: a Power BI dashboard tracking a
+          large-scale resource deployment state-wise and designation-wise, and —
+          the year before — unifying citizen datasets in Alteryx behind a
+          Tableau dashboard covering 15+ schemes, reviewed quarterly by state
+          leadership.
+        </p>
+        <p class="mt-4 font-mono text-[0.8125rem]">
+          <a
+            href="/about/"
+            class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
+            >More background</a
+          >
+        </p>
       </div>
     </section>
 
+    <section id="approach" class="scroll-mt-8 border-t border-line py-12">
+      <h2
+        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
+      >
+        How I build
+      </h2>
+      <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
+        Five things I do consistently. Each one is visible in the code of the
+        projects below, not just asserted here.
+      </p>
+
+      <dl class="mt-7">
+        {
+          principles.map((principle, index) => (
+            <div
+              class="border-line py-6 not-first:border-t"
+              data-reveal
+              data-reveal-index={index}
+            >
+              <dt class="font-display text-[1.0625rem] font-semibold tracking-tight text-ink">
+                {principle.title}
+              </dt>
+              <dd class="mt-2 max-w-2xl leading-relaxed text-muted">
+                {principle.body}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
     <section id="projects" class="scroll-mt-8 border-t border-line py-12">
-      <h2 class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted">
+      <h2
+        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
+      >
         Projects
       </h2>
       <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
         Tools I built for myself, outside work, and still use. Each page covers
         the problem, the architecture, and the decisions that were actually
-        hard.
+        hard — and every one of them is open source, so you can check the claims
+        against the code.
       </p>
 
       <ul class="mt-7">
         {
-          projects.map((project) => (
-            <li class="border-line not-first:border-t" data-reveal data-reveal-index={1}>
-              <a
-                href={`/work/${project.id}/`}
-                class="group -mx-4 block px-4 py-7 transition-colors hover:bg-surface"
-              >
+          projects.map((project, index) => (
+            <li
+              class="border-line not-first:border-t"
+              data-reveal
+              data-reveal-index={index}
+            >
+              <div class="-mx-4 px-4 py-7">
                 <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-                  <h3 class="font-display text-xl font-semibold tracking-tight text-ink underline-offset-4 transition-colors group-hover:text-accent group-hover:underline">
-                    {project.data.title}
+                  <h3 class="font-display text-xl font-semibold tracking-tight text-ink">
+                    <a
+                      href={`/work/${project.id}/`}
+                      class="underline-offset-4 transition-colors hover:text-accent hover:underline"
+                    >
+                      {project.data.title}
+                    </a>
                   </h3>
                   <p class="font-mono text-[0.75rem] text-muted">
                     {project.data.period} · {project.data.stack.join(' · ')}
@@ -150,20 +287,59 @@ const contacts = [
                 <p class="mt-3 max-w-2xl leading-relaxed text-muted">
                   {project.data.tagline}
                 </p>
-                <p class="mt-3 font-mono text-[0.75rem] text-accent">
-                  Read the case study
+                <p class="mt-4 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[0.8125rem]">
+                  <a
+                    href={`/work/${project.id}/`}
+                    class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
+                  >
+                    Read the case study
+                  </a>
+                  {project.data.repoUrl && (
+                    <a
+                      href={project.data.repoUrl}
+                      class="text-muted underline underline-offset-4 transition-colors hover:text-accent"
+                    >
+                      Source on GitHub
+                    </a>
+                  )}
+                  <a
+                    href={`/work/${project.id}/#run-it-yourself`}
+                    class="text-muted underline underline-offset-4 transition-colors hover:text-accent"
+                  >
+                    Run it yourself
+                  </a>
                 </p>
-              </a>
+              </div>
             </li>
           ))
         }
       </ul>
+
+      <div class="mt-10 border-t border-line pt-8" data-reveal>
+        <h3 class="font-display text-[1.0625rem] font-semibold tracking-tight text-ink">
+          Also built
+        </h3>
+        <p class="mt-3 max-w-2xl leading-relaxed text-muted">
+          <span class="text-ink">GEO optimization engine</span> (Jul 2025) —
+          rewrites webpages so that language models retrieve and cite them.
+          Evaluated against 150+ synthetic LLM queries; citation rate improved
+          41%. Not open source, but the evaluation-first pattern is the same one
+          I use everywhere else.
+        </p>
+      </div>
     </section>
 
     <section id="contact" class="scroll-mt-8 border-t border-line py-12">
-      <h2 class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted">
+      <h2
+        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
+      >
         Contact
       </h2>
+      <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
+        I'm looking for AI Engineer, Forward Deployed Engineer and AI Product
+        roles, and I'm open to relocating — in India or internationally. The
+        fastest way to reach me is email.
+      </p>
 
       <dl class="mt-7">
         {

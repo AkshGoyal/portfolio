@@ -1,5 +1,6 @@
 ---
 title: 'Job Search Assistant'
+kind: 'project'
 repo: 'AkshGoyal/Agent_JobApplications'
 repoUrl: 'https://github.com/akshgoyal/Agent_JobApplications'
 tagline: 'A human-in-the-loop AI job search assistant: ranks postings and drafts tailored CVs/cover letters. You apply manually.'
@@ -16,8 +17,11 @@ topics:
     'chrome-extension',
     'job-search',
   ]
+access: 'No hosted demo, on purpose: the profile/ directory it reads is my real CV and personal details, and a public copy would answer with them. The source is public and it runs against a profile you write yourself.'
 order: 1
 ---
+
+import Pipeline from '../../components/Pipeline.astro';
 
 ## Problem
 
@@ -59,23 +63,43 @@ not just a one-off query.
 
 ### Architecture
 
-```
-sources/   → one module per job source (manual paste, Gmail alert IMAP ingestion,
-             Chrome extension capture) — each produces a raw posting
-pipeline/  → normalize → dedup → store → rank (LLM) → tailor/answer (LLM)
-profile/   → my own knowledge base — the ONLY source of truth the LLM may draw from
-llm.py     → single wrapper for every LLM call (prompts, parsing, retries, logging)
-db/        → SQLite schema, migrations, repository functions
-cli/       → Typer commands (ingest, rank, list, show, tailor, answer, status, opportunities)
-web/       → FastAPI app + static page, calling the same pipeline functions as the CLI
-extension/ → Chrome extension that posts the current page to the web app's ingest endpoint
-config.py  → env-var API key, model names, paths
-```
+Data flows one way, and the model is only called at the two points where
+judgment is actually required. Everything else is ordinary code I can test.
 
-Data flows one way: a source produces a raw posting, the pipeline normalizes,
-dedupes and stores it in SQLite, the LLM ranks it against the profile, and on
-request the LLM drafts materials grounded only in `profile/`. The CLI and web UI
-are two interfaces over the same pipeline functions.
+<Pipeline
+  stages={[
+    {
+      kind: 'input',
+      label: 'A posting arrives',
+      note: 'Pasted in, captured by the Chrome extension, or read out of a LinkedIn alert email over read-only IMAP. Three sources, one entry point.',
+    },
+    {
+      kind: 'code',
+      label: 'Normalize, dedupe, store',
+      note: 'Plain Python and SQLite. All three sources share one storage path, so a posting seen twice is recognised however it arrived.',
+    },
+    {
+      kind: 'llm',
+      label: 'Rank against my profile',
+      note: 'Scores relevance and writes a short rationale, grounded only in profile/.',
+    },
+    {
+      kind: 'llm',
+      label: 'Draft materials',
+      note: 'CV bullet suggestions, a cover letter, answers to form questions — each constrained by a schema built from my real CV.',
+    },
+    {
+      kind: 'output',
+      label: 'I review and apply',
+      note: 'Every output is a draft. Nothing is submitted, and no email is ever sent.',
+    },
+  ]}
+  caption="The CLI and the local web UI are two interfaces over these same functions — neither has logic the other lacks."
+/>
+
+The knowledge base in `profile/` is the only source of truth the model may draw
+on, `llm.py` is the single wrapper every model call goes through, and `db/`
+holds the schema and migrations.
 
 ## Hard parts and decisions
 
@@ -140,3 +164,25 @@ Separately, the profile files (`facts.yaml`, `canned_answers.yaml`) still
 contain unfilled placeholders. Output quality for tailoring and answering
 depends on that profile being complete, which is a practical next step
 independent of any new feature.
+
+## Run it yourself
+
+The tool is only as good as the profile it reads, so step three is the one that
+matters. The test suite needs no API key — the LLM client is mocked throughout.
+
+```bash
+git clone https://github.com/AkshGoyal/Agent_JobApplications.git
+cd Agent_JobApplications
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+
+cp .env.example .env          # add your GEMINI_API_KEY
+export $(grep -v '^#' .env | xargs)
+
+# write your own profile/facts.yaml, narratives.md, canned_answers.yaml
+python -m cli.main ingest paste --url <job-url> --file jd.txt --rank
+python -m cli.main list --min-score 70
+python -m cli.main tailor <job_id>
+
+python -m web.app             # or the local web UI, http://localhost:8000
+```
