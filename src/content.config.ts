@@ -12,6 +12,9 @@ const work = defineCollection({
     org: z.string().optional(),
     repo: z.string().optional(),
     repoUrl: z.string().optional(),
+    // A private repository gets no link — a visitor would only hit a 404 —
+    // and the `access` line says why it is private and how to see the code.
+    repoPrivate: z.boolean().default(false),
     tagline: z.string(),
     period: z.string(),
     stack: z.array(z.string()),

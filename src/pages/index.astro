@@ -43,23 +43,23 @@ const highlights = [
 const principles = [
   {
     title: 'Measure first, then tune',
-    body: 'RAG systems are easy to fiddle with and impossible to improve blind. On the chatbot I wrote the evaluation scenarios and failure paths before touching chunking, embeddings or search strategy — which is the only reason 94% means anything.',
+    body: 'RAG systems are easy to fiddle with and impossible to improve blind. On the chatbot I wrote the evaluation scenarios before touching chunking or search — which is the only reason 94% means anything. The eval harness takes that further: it scores retrieval and generation separately, so a wrong answer says which half to fix.',
   },
   {
     title: 'Ordinary code by default, the model only where judgment is needed',
-    body: 'Plan My Day calls a model at exactly three points; the job assistant at two. Everything around them — ingestion, dedup, storage, ordering — is plain Python I can test without a network.',
+    body: 'The outreach agent calls a model once per contact, to write. Whether an email is allowed to go — grounding, dedupe, opt-outs, the daily cap — is decided by plain Python that can be tested without a network.',
   },
   {
     title: 'Constrain the output, then verify it anyway',
-    body: 'Every call passes a Pydantic schema, and enumerated fields are Literal types so an invalid value cannot be returned. Then the code checks the result against the database: a task id that matches no real row is dropped before it reaches the screen.',
+    body: 'The drafting schema only accepts a contact’s real field names, so a model cannot cite a source that doesn’t exist. Then code checks every name, place and number against that contact’s data. Plan My Day does the same with task ids: one that matches no real row never reaches the screen.',
   },
   {
-    title: 'One wrapper, so a change stays small',
-    body: 'Every model call goes through a single file. Migrating the job assistant from Anthropic to Gemini touched four files and left the pipelines, CLI and prompts untouched.',
+    title: 'One boundary for every model call',
+    body: 'In the eval harness, every call passes through one module that caches on the full request, enforces a hard spending limit, counts retries and pins the provider. In the outreach agent, a test fails the build if anything outside the adapters imports a vendor library.',
   },
   {
-    title: 'Say where the boundary is',
-    body: 'The job assistant reads Gmail strictly read-only and never sends anything. Plan My Day has no auth, so it binds to 127.0.0.1 and documents that rather than shipping security theatre. Neither has a hosted demo, for reasons I would rather state than hide.',
+    title: 'Write down the limits',
+    body: 'The outreach checker has one known blind spot, and it is recorded as a test so it can’t be forgotten. The eval harness counts errors next to scores, so 90% never quietly means 90% of the cases that didn’t crash. Plan My Day has no auth, so it binds to 127.0.0.1 and says so.',
   },
 ];
 
@@ -84,7 +84,7 @@ const contacts = [
 
 <BaseLayout
   title="Aksh Goyal — AI Engineer"
-  description="I turn messy, real-world problems into working AI tools — from pharma market intelligence to agents that run my own job search."
+  description="I build AI systems that have to be right: RAG for a global pharmaceutical company, a harness that shows which half of a RAG system broke, and outreach email that can’t invent a fact."
 >
   <div class="mx-auto max-w-3xl px-6 sm:px-8">
     <section class="pt-16 pb-14 sm:pt-20">
@@ -94,8 +94,8 @@ const contacts = [
         Aksh Goyal
       </h1>
       <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl">
-        I turn messy, real-world problems into working AI tools — from pharma
-        market intelligence to agents that run my own job search.
+        I build AI systems that have to be right — and the tooling that proves
+        whether they are.
       </p>
       <p class="mt-4 max-w-2xl leading-relaxed text-muted">
         Fifteen months embedded with the Vaccines Commercial team of a global
@@ -104,8 +104,7 @@ const contacts = [
       </p>
 
       <div class="mt-7 flex flex-wrap items-center gap-2">
-        <span class="mr-1 text-[0.875rem] text-muted">Looking for roles in</span
-        >
+        <span class="mr-1 text-[0.875rem] text-muted">Open to</span>
         {roles.map((role) => <Tag label={role} />)}
       </div>
 
@@ -225,8 +224,8 @@ const contacts = [
         How I build
       </h2>
       <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
-        Five things I do consistently. Each one is visible in the code of the
-        projects below, not just asserted here.
+        Five things I do consistently. Each one points at something specific in
+        the work below, not a general belief.
       </p>
 
       <dl class="mt-7">
@@ -256,10 +255,9 @@ const contacts = [
         Projects
       </h2>
       <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
-        Tools I built for myself, outside work, and still use. Each page covers
-        the problem, the architecture, and the decisions that were actually
-        hard — and every one of them is open source, so you can check the claims
-        against the code.
+        Built outside work. Each page covers the problem, the architecture, and
+        the decisions that were actually hard — including the ones that went
+        wrong first.
       </p>
 
       <ul class="mt-7">
@@ -294,20 +292,22 @@ const contacts = [
                   >
                     Read the case study
                   </a>
-                  {project.data.repoUrl && (
-                    <a
-                      href={project.data.repoUrl}
-                      class="text-muted underline underline-offset-4 transition-colors hover:text-accent"
-                    >
-                      Source on GitHub
-                    </a>
+                  {project.data.repoUrl && !project.data.repoPrivate && (
+                    <>
+                      <a
+                        href={project.data.repoUrl}
+                        class="text-muted underline underline-offset-4 transition-colors hover:text-accent"
+                      >
+                        Source on GitHub
+                      </a>
+                      <a
+                        href={`/work/${project.id}/#run-it-yourself`}
+                        class="text-muted underline underline-offset-4 transition-colors hover:text-accent"
+                      >
+                        Run it yourself
+                      </a>
+                    </>
                   )}
-                  <a
-                    href={`/work/${project.id}/#run-it-yourself`}
-                    class="text-muted underline underline-offset-4 transition-colors hover:text-accent"
-                  >
-                    Run it yourself
-                  </a>
                 </p>
               </div>
             </li>
@@ -336,9 +336,8 @@ const contacts = [
         Contact
       </h2>
       <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
-        I'm looking for AI Engineer, Forward Deployed Engineer and AI Product
-        roles, and I'm open to relocating — in India or internationally. The
-        fastest way to reach me is email.
+        Email is the fastest way to reach me. Based in India, open to
+        relocating.
       </p>
 
       <dl class="mt-7">
