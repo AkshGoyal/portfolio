@@ -1,0 +1,146 @@
+---
+title: 'Outreach Agent'
+kind: 'project'
+repo: 'AkshGoyal/Outreach-Agent'
+repoUrl: 'https://github.com/AkshGoyal/Outreach-Agent'
+repoPrivate: true
+tagline: 'Personalised B2B email that can’t invent a fact about the person it’s written to — every claim is checked by code against their own data before a human approves it.'
+period: '2026'
+stack: ['Python', 'SQLite', 'Pydantic', 'SMTP / IMAP']
+topics:
+  [
+    'llm',
+    'grounding',
+    'structured-outputs',
+    'hexagonal-architecture',
+    'email',
+    'human-in-the-loop',
+    'pydantic',
+  ]
+access: 'The repository is private because it was built for a real business and handles real contact data. I’m happy to walk through the code.'
+order: 2
+---
+
+import Pipeline from '../../components/Pipeline.astro';
+
+## Problem
+
+My family runs a cotton-thread business in Ludhiana, and it needed to reach
+potential buyers and manufacturers by email — twenty or thirty a day, not
+thousands.
+
+Mail-merge gets ignored. Writing two hundred emails by hand doesn't scale. The
+gap between them is the whole product, and it contains a trap: an email that
+invents a fact about its recipient is worse than a generic one. Generic gets
+deleted. Wrong gets remembered — and a language model will cheerfully mention
+the trade fair where you supposedly met.
+
+"The prompt tells it not to" isn't a control. So the brief I set was that every
+claim about a recipient has to trace back to a cell in the spreadsheet the
+business supplied, and that code — not another model — checks it.
+
+## What I built
+
+A contact list goes in; grounded drafts come out; a person reads, edits and
+approves each one in a local web page; approved emails go out from the
+business's own mailbox, capped and paced, never twice to the same person and
+never to anyone who has opted out.
+
+<Pipeline
+  stages={[
+    {
+      kind: 'input',
+      label: 'Import a contact list',
+      note: 'CSV or Excel. It works out which column holds the email address, rejects unusable rows with their spreadsheet row numbers, and writes nothing until you say so.',
+    },
+    {
+      kind: 'code',
+      label: 'Keep each contact’s facts as evidence',
+      note: 'The literal text of each cell, with the business’s own bookkeeping columns left out, because a note to yourself is not a fact about them.',
+    },
+    {
+      kind: 'llm',
+      label: 'Draft, citing a source for every sentence',
+      note: 'The model returns a subject and a list of sentences, each naming the field it drew on. The schema only accepts that contact’s real field names, so it cannot cite a source that doesn’t exist.',
+    },
+    {
+      kind: 'guard',
+      label: 'Check every specific against the evidence',
+      note: 'Plain code checks every name, place, number and product term. Anything unsupported is removed before a person sees it; anything about the recipient that says nothing checkable is flagged as their call.',
+    },
+    {
+      kind: 'output',
+      label: 'A person approves, then it sends',
+      note: 'A draft cannot be approved while any line is unsupported — including a line the reviewer typed. Sending is a dry run unless you say otherwise.',
+    },
+  ]}
+  caption="The model is called once per contact. Everything that decides whether an email is allowed to go is ordinary code."
+/>
+
+The checker's report, for three sentences a model might write:
+
+```
+ ok  You make knitted cotton fabric for export in Tiruppur.
+ XX  I believe we met at your Coimbatore stall last year.
+       -> Nothing we hold mentions 'coimbatore'.        (removed)
+ ?   Your team clearly cares about quality.
+       -> About them, but says nothing checkable.       (your call)
+```
+
+## Hard parts and decisions
+
+- **Check specifics with code, not with a second model.** The obvious design is
+  to have one model write and another check. I rejected it: it uses a model to
+  check a model on a judgment call, and the failure that matters — missing a
+  fabrication — is silent. You would never know it happened. The damaging
+  errors are invented *specifics*, and checking whether a name, place or number
+  appears in the evidence is plain code that catches that class the same way
+  every time. The other alternative, having code assemble the facts into
+  templates, was completely reliable and read stiffly — and stiffness is what
+  the project exists to avoid.
+- **A known gap, written down as a test.** The checker treats a word as a
+  specific if it's capitalised and not the first word of a sentence, or
+  contains a digit. So an invented place name used as the *opening* word slips
+  through. Fixing that needs a dictionary, and a hand-kept list of common
+  openers would raise false alarms forever — a checker that cries wolf stops
+  being read. The gap is recorded as a test named
+  `test_a_lie_as_the_very_first_word_slips_through`, so it can't be forgotten.
+- **Picking the model by measurement.** The first real run drafted for three
+  real contacts with each candidate model and used the grounding checker as the
+  scorer. The cheapest model came out best: zero unsupported lines, against two
+  from a model costing about four times as much. The sample is small, and the
+  decision log says so and asks for a re-run on the revised prompt before
+  treating it as settled.
+- **Vendors stay behind ports, and a test enforces it.** The logic knows
+  nothing about the mail provider, the model or the database. A test reads
+  every file and fails the build if anything outside the adapters imports a
+  vendor library, so switching mail provider or model is configuration, not a
+  rewrite — and the 255-test suite needs no API key and no network.
+- **The first real email landed in Promotions.** Authentication worked; the
+  content read like a newsletter. Two of the signals were my own choices — a
+  list-unsubscribe header and boilerplate opt-out wording. The footer is now a
+  plain signature — name, company, address, and "just reply and I won't write
+  again" — which stays compliant, since any reply that says no goes on the
+  do-not-contact list.
+- **Never send twice, even after a crash.** Sending records its intent before
+  the email goes, so a send interrupted partway is held back rather than
+  repeated. A row marked pending is visible evidence that something was
+  interrupted, instead of a silent gap.
+
+## Where it stands
+
+Version one is complete. Replies and follow-ups
+are deliberately still handled by hand: at the current volume, reading replies
+in the mailbox is faster than automating it, and designing automation before
+there are real replies to design against would mean designing against imagined
+ones.
+
+The binding constraint turned out not to be software. Of 44 researched leads,
+7 had a published email address.
+
+## What I'd do next
+
+- Find addresses for the other 37 leads — the actual bottleneck.
+- Re-run the model comparison on the current prompt, with more contacts.
+- Read replies over IMAP, classify them, and stop follow-ups the moment someone
+  answers or opts out — the design is written; it waits on real replies.

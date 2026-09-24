@@ -17,6 +17,9 @@ interface Stage {
   label: string;
   kind: Kind;
   note?: string;
+  // Designed but not built yet. Drawn muted and labelled, so a diagram of
+  // work in progress never implies more exists than does.
+  planned?: boolean;
 }
 
 interface Props {
@@ -39,9 +42,15 @@ const kindLabel: Record<Kind, string> = {
   <ol class="pipeline-track">
     {
       stages.map((stage, index) => (
-        <li class={`pipeline-stage kind-${stage.kind}`} style={`--i: ${index}`}>
+        <li
+          class:list={['pipeline-stage', `kind-${stage.kind}`, { 'is-planned': stage.planned }]}
+          style={`--i: ${index}`}
+        >
           <div class="pipeline-node">
-            <span class="pipeline-kind">{kindLabel[stage.kind]}</span>
+            <span class="pipeline-kind">
+              {kindLabel[stage.kind]}
+              {stage.planned && ' · not built yet'}
+            </span>
             <span class="pipeline-label">{stage.label}</span>
             {stage.note && <span class="pipeline-note">{stage.note}</span>}
           </div>
@@ -107,6 +116,21 @@ const kindLabel: Record<Kind, string> = {
   .pipeline-stage.kind-guard::after {
     border-color: var(--color-accent);
     background-color: var(--color-accent);
+  }
+
+  .pipeline-stage.is-planned::after {
+    border-style: dashed;
+    border-color: var(--color-muted);
+    background-color: var(--color-bg);
+  }
+
+  .is-planned .pipeline-label,
+  .is-planned .pipeline-note {
+    opacity: 0.6;
+  }
+
+  .is-planned .pipeline-kind {
+    color: var(--color-muted);
   }
 
   .pipeline-node {

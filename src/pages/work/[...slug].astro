@@ -18,6 +18,8 @@ const { Content } = await render(project);
 const isEmployment = project.data.kind === 'employment';
 const backHref = isEmployment ? '/#experience' : '/#projects';
 const backLabel = isEmployment ? 'All experience' : 'All projects';
+// A private repository would only give a visitor a 404, so it gets no link.
+const showRepo = Boolean(project.data.repoUrl) && !project.data.repoPrivate;
 ---
 
 <BaseLayout
@@ -53,9 +55,9 @@ const backLabel = isEmployment ? 'All experience' : 'All projects';
       </div>
 
       {
-        (project.data.repoUrl || project.data.access) && (
+        (showRepo || project.data.access) && (
           <div class="mt-7 border-t border-line pt-6">
-            {project.data.repoUrl && (
+            {showRepo && (
               <p class="flex flex-wrap gap-x-5 gap-y-2 font-mono text-[0.8125rem]">
                 <a
                   href={project.data.repoUrl}
@@ -75,7 +77,7 @@ const backLabel = isEmployment ? 'All experience' : 'All projects';
               <p
                 class:list={[
                   'max-w-2xl text-[0.875rem] leading-relaxed text-muted',
-                  project.data.repoUrl && 'mt-3',
+                  showRepo && 'mt-3',
                 ]}
               >
                 {project.data.access}
@@ -92,12 +94,11 @@ const backLabel = isEmployment ? 'All experience' : 'All projects';
 
     <div class="border-t border-line py-10">
       <p class="max-w-2xl leading-relaxed text-muted">
-        I'm looking for AI Engineer, Forward Deployed Engineer and AI Product
-        roles.
+        Want to talk through how this was built?{' '}
         <a
           class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
           href="mailto:aksh.iitdelhi@gmail.com">Email me</a
-        > if this is the kind of work you're hiring for.
+        >.
       </p>
       <div class="mt-6 flex flex-wrap gap-3">
         <a

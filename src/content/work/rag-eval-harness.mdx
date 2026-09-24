@@ -1,0 +1,179 @@
+---
+title: 'RAG Eval Harness'
+kind: 'project'
+repo: 'AkshGoyal/Rag-Eval-Harness'
+repoUrl: 'https://github.com/AkshGoyal/Rag-Eval-Harness'
+repoPrivate: true
+tagline: 'Measures whether a change to a RAG system actually helped — and when it didn’t, says whether retrieval or generation broke.'
+period: '2026 · in progress'
+stack: ['Python', 'NumPy', 'Pydantic', 'OpenRouter']
+topics:
+  [
+    'rag',
+    'evaluation',
+    'retrieval',
+    'bm25',
+    'embeddings',
+    'reproducibility',
+    'cuad',
+  ]
+access: 'The repository is private until the worked example lands, a decision recorded in its own log. I’m happy to walk through the code.'
+order: 1
+---
+
+import Pipeline from '../../components/Pipeline.astro';
+
+## Problem
+
+Every RAG system gets tuned the same way: change the chunk size, try a
+different embedding model, retrieve ten passages instead of five — then ask
+three questions you happen to think of and form an impression.
+
+That impression is usually wrong in a specific way. A change that makes simple
+lookups slightly better and questions spanning two clauses much worse looks,
+on average, like nothing happened. And a single accuracy score can't tell you
+*why* an answer was wrong, when there are exactly two culprits that need
+opposite fixes: either retrieval never fetched the passage holding the answer,
+or it did and generation misread it. One means changing the chunking or the
+search; the other means changing the prompt or the model. Guessing between
+them is how weeks get spent tuning the wrong half.
+
+This is the project that grew out of the chatbot work. There, the evaluation
+framework is what took accuracy to 94%. Here I wanted to build that discipline
+properly, as a tool, against a corpus anyone can download.
+
+## What I built
+
+A harness that scores retrieval and generation **separately**. It can, because
+the answer key records not just the correct answer but which passage of which
+document it lives in — so a failing case comes back as either *"retrieved the
+wrong passages"* or *"had the right passage and answered wrongly"*, never just
+*"wrong"*.
+
+It runs over [CUAD](https://www.atticusprojectai.org/cuad): 510 commercial
+contracts with 20,910 labels written by legal experts, including 14,208 cases
+where an expert confirmed a clause is *absent*. Those matter most. The right
+answer to "what's the liability cap?" in a contract that has none is "there
+isn't one", and making something up is the failure that hurts in production.
+
+<Pipeline
+  stages={[
+    {
+      kind: 'input',
+      label: 'Fetch the corpus, and prove it hasn’t changed',
+      note: 'Every contract is hashed and the dataset gets a fingerprint. A verify command re-hashes everything, so documents can never shift underneath a comparison.',
+    },
+    {
+      kind: 'code',
+      label: 'Build the test set reproducibly',
+      note: 'Cases are chosen by a seeded hash, stratified across five question types. Any question that shares too many words with its own answer is rejected, and the rejections are counted.',
+    },
+    {
+      kind: 'code',
+      label: 'Chunk and retrieve',
+      note: 'Keyword search (BM25) or vector search, chosen by one line of configuration. Both are exact, and every chunk carries its character offsets back into the contract.',
+    },
+    {
+      kind: 'guard',
+      label: 'Score retrieval against the expert’s answer location',
+      note: 'hit@k, span recall@k and MRR, broken down by question type. Failed cases score zero rather than leaving the average; refusal cases are counted as unscored rather than dropped.',
+    },
+    {
+      kind: 'llm',
+      label: 'Generate an answer',
+      note: 'A small, cheap generator — the harness exists to compare configurations, not to win with an expensive model.',
+      planned: true,
+    },
+    {
+      kind: 'llm',
+      label: 'Judge it, then check the judge',
+      note: 'A model from a different family marks each answer, and its verdicts are compared against mine on a sample. Numbers from an unchecked judge are not evidence.',
+      planned: true,
+    },
+  ]}
+  caption="The retrieval half is built and scored. Generation and the judge are designed and next — drawn muted here because they don’t exist yet."
+/>
+
+Every model call goes through one module. It caches responses under a key
+covering everything that could change an answer, enforces a hard spending
+limit, counts retries instead of hiding them, and pins the upstream provider,
+because a gateway that silently reroutes a request would make every comparison
+unattributable.
+
+## A result it has already produced
+
+Varying only the chunk size, with everything else held fixed, and measuring
+how often keyword search puts the passage containing the answer in the top
+*k*:
+
+| Chunk size   | Chunks | top 1   | top 5   | top 10 |
+| ------------ | ------ | ------- | ------- | ------ |
+| 1,000 chars  | 30,578 | 21%     | 47%     | 53%    |
+| 2,000 chars  | 15,444 | 26%     | 53%     | 58%    |
+| 4,000 chars  | 7,834  | **42%** | 63%     | 84%    |
+| 8,000 chars  | 4,012  | 32%     | **84%** | 89%    |
+
+Top-1 peaks at 4,000 characters and *falls* at 8,000, while top-10 keeps
+climbing. A bigger chunk is more likely to contain the answer, but it dilutes
+the signal that would rank it first — so the best chunk size depends on how
+many passages you intend to show the model. That isn't obvious in advance, and
+picking it by intuition would get it wrong.
+
+## Hard parts and decisions
+
+- **The first end-to-end run scored zero out of nineteen.** Not weak retrieval
+  — a design fault. Questions named their contract with an identifier that
+  squashed the company into one token, like `lejuholdingsltd`, which appears
+  nowhere in the corpus. The one word that could find the right document
+  matched nothing. Naming contracts instead with words that provably appear
+  inside them, taken from the experts' own annotations, took recall from **0%
+  to 53%**. The risk had been written down three phases earlier, when the
+  corpus was chosen: *if everything scores near zero, revisit the question
+  generation*. Building retrieval before generation is why it surfaced there,
+  and not as a mysterious zero at the very end.
+- **Exact search, not a vector database.** Approximate nearest-neighbour search
+  can return slightly different results between index builds. A harness whose
+  entire claim is *"this changed because that changed"* can't afford an index
+  that moves underneath it, so search is exact, over a NumPy array.
+- **A comparison only counts if one thing changed.** The shipped
+  configurations — keyword search, a small OpenAI embedding model, and Qwen3
+  Embedding 8B — each differ from the next in exactly one section, and a test
+  enforces it.
+- **The cache is the part most worth distrusting.** A key that fails to change
+  when an input does returns an old answer under a new configuration's name,
+  and nothing in the output looks wrong. Six separate tests each change one
+  field that could affect an answer and assert that the key changes too.
+- **A missing price is not zero.** The first real run against the model
+  gateway worked on the first try, and exposed that embedding models were
+  absent from its main price list — so the client had been costing them at
+  zero, invisible to the spending limit. It now refuses to call any model it
+  can't price, before touching the network.
+- **The budget is a constraint, not a hope.** The whole project runs on
+  ₹1,000. Building a vector index shows a cost estimate first, has a dry-run
+  mode, and refuses to start if the estimate would breach the limit. The full
+  15,444-chunk build was rehearsed through a fake gateway before a rupee was
+  spent.
+
+The 159-test suite runs with no API key and no network access, and a test
+enforces that it stays that way. CI runs on Linux and Windows.
+
+## Where it stands
+
+Retrieval is built, scored, and reproducible: corpus, test set, both search
+methods, and the metrics. The keyword-versus-vector comparison is ready to run.
+Generation, the judge, and calibrating that judge against human labels are
+designed and not yet built. Every decision so far — what was chosen, what was
+rejected, and how we'd notice if it was wrong — is recorded in the project's
+decision log.
+
+## What I'd do next
+
+- Run the first paid comparison: keyword search against two embedding models,
+  on the same questions.
+- Build generation and the judge, then measure how often the judge agrees
+  with me — and publish that number next to every score it produces.
+- Measure how much a score moves between identical runs, so a two-point
+  difference can be told apart from noise.
+- Point the harness at a real chatbot through an adapter. The boundary between
+  harness and RAG system — questions in, answers and sources out — was defined
+  first so that this stays cheap.
