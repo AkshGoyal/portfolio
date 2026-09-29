@@ -8,13 +8,15 @@ const work = defineCollection({
     title: z.string(),
     // `employment` entries are client work with no public repo; `project`
     // entries are things built outside work, with source anyone can read.
-    kind: z.enum(['employment', 'project']).default('project'),
+    kind: z.enum(['employment', 'project', 'product']).default('project'),
     org: z.string().optional(),
     repo: z.string().optional(),
     repoUrl: z.string().optional(),
     // A private repository gets no link — a visitor would only hit a 404 —
     // and the `access` line says why it is private and how to see the code.
     repoPrivate: z.boolean().default(false),
+    // For product strategy case studies with an associated presentation deck (e.g. PDF in public/).
+    deckUrl: z.string().optional(),
     tagline: z.string(),
     period: z.string(),
     stack: z.array(z.string()),

@@ -16,8 +16,9 @@ const { project } = Astro.props;
 const { Content } = await render(project);
 
 const isEmployment = project.data.kind === 'employment';
-const backHref = isEmployment ? '/#experience' : '/#projects';
-const backLabel = isEmployment ? 'All experience' : 'All projects';
+const isProduct = project.data.kind === 'product';
+const backHref = isEmployment ? '/#experience' : isProduct ? '/#product' : '/#projects';
+const backLabel = isEmployment ? 'All experience' : isProduct ? 'All product work' : 'All projects';
 // A private repository would only give a visitor a 404, so it gets no link.
 const showRepo = Boolean(project.data.repoUrl) && !project.data.repoPrivate;
 ---
@@ -55,7 +56,7 @@ const showRepo = Boolean(project.data.repoUrl) && !project.data.repoPrivate;
       </div>
 
       {
-        (showRepo || project.data.access) && (
+        (showRepo || project.data.deckUrl || project.data.access) && (
           <div class="mt-7 border-t border-line pt-6">
             {showRepo && (
               <p class="flex flex-wrap gap-x-5 gap-y-2 font-mono text-[0.8125rem]">
@@ -73,11 +74,23 @@ const showRepo = Boolean(project.data.repoUrl) && !project.data.repoPrivate;
                 </a>
               </p>
             )}
+            {project.data.deckUrl && (
+              <p class="flex flex-wrap gap-x-5 gap-y-2 font-mono text-[0.8125rem]">
+                <a
+                  href={project.data.deckUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
+                >
+                  Open slide deck (PDF) →
+                </a>
+              </p>
+            )}
             {project.data.access && (
               <p
                 class:list={[
                   'max-w-2xl text-[0.875rem] leading-relaxed text-muted',
-                  showRepo && 'mt-3',
+                  (showRepo || project.data.deckUrl) && 'mt-3',
                 ]}
               >
                 {project.data.access}
@@ -106,6 +119,15 @@ const showRepo = Boolean(project.data.repoUrl) && !project.data.repoPrivate;
           class="rounded-[3px] border border-line px-4 py-2.5 font-mono text-[0.8125rem] text-ink transition-colors hover:border-accent hover:text-accent"
           >{backLabel}</a
         >
+        {project.data.deckUrl && (
+          <a
+            href={project.data.deckUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="rounded-[3px] bg-accent px-4 py-2.5 font-mono text-[0.8125rem] text-on-accent transition-opacity hover:opacity-88"
+            >View slide deck (PDF)</a
+          >
+        )}
         <a
           href="/resume.pdf"
           class="rounded-[3px] border border-line px-4 py-2.5 font-mono text-[0.8125rem] text-ink transition-colors hover:border-accent hover:text-accent"
