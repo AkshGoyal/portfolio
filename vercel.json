@@ -1,0 +1,19 @@
+{
+  "redirects": [
+    {
+      "source": "/resume.pdf",
+      "destination": "/akshgoyal_CV.pdf",
+      "permanent": true
+    },
+    {
+      "source": "/Tata1mg_AkshGoyal.pdf",
+      "destination": "/railways-signal-guidance.pdf",
+      "permanent": true
+    },
+    {
+      "source": "/AkshGoyal_IITDelhi.pdf",
+      "destination": "/mars-20-year-roadmap.pdf",
+      "permanent": true
+    }
+  ]
+}

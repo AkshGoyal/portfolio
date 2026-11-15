@@ -2,6 +2,7 @@
 // and one number a reader can check. Copy is plain and specific on purpose.
 
 export type Replay =
+  | 'deck'
   | 'duely'
   | 'outreach'
   | 'pharmagraph'
@@ -16,12 +17,13 @@ export interface Link {
   note?: string;
 }
 
-export type Kind = 'live' | 'ai' | 'data';
+export type Kind = 'live' | 'ai' | 'data' | 'product';
 
 export const kindLabels: Record<Kind, string> = {
   live: 'Live apps',
   ai: 'AI pipelines',
   data: 'Data and analytics',
+  product: 'Product strategy',
 };
 
 export interface Project {
@@ -41,6 +43,8 @@ export interface Project {
   shots: { src: string; alt: string }[];
   status?: string;
   caseStudy?: string;
+  pipelineLabel?: string;
+  slides?: string[];
 }
 
 export const projects: Project[] = [
@@ -228,7 +232,84 @@ export const projects: Project[] = [
     status: 'In progress: phase 5 of 14',
     caseStudy: '/work/rag-eval-harness/',
   },
+  {
+    slug: 'railways-signal-guidance',
+    short: 'Fog delays trains; move the signal into the cab',
+    kinds: ['product'],
+    title: 'Indian Railways: signal and speed guidance in the cab',
+    line: 'Winter fog stalls India’s trains and costs freight about ₹10,000 crore a year. I traced the delays to one constraint and designed the fix around it.',
+    forWhom: 'Railway operations: loco pilots, traffic control and freight customers.',
+    evidence: {
+      figure: '35%',
+      label: 'of delays trace to one constraint: in dense fog, drivers can’t see signals beyond 50 metres, so they crawl at 10 to 30 km/h.',
+    },
+    ownership:
+      'Took an open-ended product brief from problem sizing to a rollout plan: root causes ranked, solution designed, risks and metrics set.',
+    product:
+      'Didn’t chase more track or more trains. Show the driver the next signal and a safe speed 500 metres ahead, so visibility stops being the limit.',
+    pipeline:
+      'Pilot on one route, then the fog-prone winter corridors, then the national trunk network. North-star metric: cut average delay on trial routes from 90 to 40 minutes.',
+    pipelineLabel: 'Plan',
+    stack: ['Root-cause analysis', 'Phased rollout', 'Metric design'],
+    links: [
+      { label: 'Read the case study', href: '/work/indian-railways-delays/' },
+      { label: 'Download the deck', href: '/railways-signal-guidance.pdf' },
+    ],
+    replay: 'deck',
+    slides: [
+      '/work/decks/railways-signal-guidance-1.jpg',
+      '/work/decks/railways-signal-guidance-2.jpg',
+      '/work/decks/railways-signal-guidance-3.jpg',
+      '/work/decks/railways-signal-guidance-4.jpg',
+    ],
+    shots: [],
+  },
+  {
+    slug: 'mars-20-year-roadmap',
+    short: 'A 20-year plan for 10,000 people on Mars',
+    kinds: ['product'],
+    title: 'Mars: a 20-year roadmap for 10,000 settlers',
+    line: 'A first-principles strategy for a self-sustaining settlement: who funds it, where the money goes, what breaks, and how you’d know it’s working.',
+    forWhom: 'A product strategy exercise in long-horizon planning under deep uncertainty.',
+    evidence: {
+      figure: '40 / 25 / 15 / 20',
+      label: 'The capital split: transport, habitat and life support, resource extraction, and health, R&D and governance.',
+    },
+    ownership:
+      'Built the whole argument: why Mars, the assumptions, a four-stage funding model, the budget trade-offs, a phased settlement plan and a risk register.',
+    product:
+      'No single government or company can fund 20 years alone, so each phase brings in the backer whose incentive peaks then: agencies first, industry and media later.',
+    pipeline:
+      'From 50 to 100 specialists in years 1 to 5 to a 10,000-person settlement, with success metrics and mitigations for each failure mode.',
+    pipelineLabel: 'Plan',
+    stack: ['First-principles reasoning', 'Capital allocation', 'Risk register'],
+    links: [
+      { label: 'Read the case study', href: '/work/mars-colonization-strategy/' },
+      { label: 'Download the deck', href: '/mars-20-year-roadmap.pdf' },
+    ],
+    replay: 'deck',
+    slides: [
+      '/work/decks/mars-20-year-roadmap-1.jpg',
+      '/work/decks/mars-20-year-roadmap-3.jpg',
+      '/work/decks/mars-20-year-roadmap-4.jpg',
+      '/work/decks/mars-20-year-roadmap-2.jpg',
+    ],
+    shots: [],
+  },
 ];
+
+const ORDER = [
+  'duely',
+  'grounded-outreach',
+  'pharmagraph',
+  'railways-signal-guidance',
+  'tally-slip-bot',
+  'clinical-evidence-assistant',
+  'investor-value-analysis',
+  'mars-20-year-roadmap',
+  'rag-eval-harness',
+];
+projects.sort((a, b) => ORDER.indexOf(a.slug) - ORDER.indexOf(b.slug));
 
 export interface SmallProject {
   title: string;
@@ -264,12 +345,12 @@ export const decks = [
     title: 'Indian Railways: in-cabin signal and speed guidance',
     line: 'Fog delays cost freight about ₹10,000 crore a year. Visibility, not track, was the binding constraint, so the fix is guidance inside the cab.',
     href: '/work/indian-railways-delays/',
-    pdf: '/Tata1mg_AkshGoyal.pdf',
+    pdf: '/railways-signal-guidance.pdf',
   },
   {
     title: 'Mars: a 20-year roadmap for 10,000 settlers',
     line: 'A first-principles phased plan, capital allocation model and failure-mode register for a self-sustaining settlement.',
     href: '/work/mars-colonization-strategy/',
-    pdf: '/AkshGoyal_IITDelhi.pdf',
+    pdf: '/mars-20-year-roadmap.pdf',
   },
 ];
