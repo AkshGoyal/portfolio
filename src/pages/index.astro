@@ -8,6 +8,7 @@ import TallyReplay from '../components/replays/TallyReplay.astro';
 import ClinicalReplay from '../components/replays/ClinicalReplay.astro';
 import InvestorReplay from '../components/replays/InvestorReplay.astro';
 import EvalReplay from '../components/replays/EvalReplay.astro';
+import DeckReplay from '../components/replays/DeckReplay.astro';
 
 const replays = {
   duely: DuelyReplay,
@@ -17,7 +18,12 @@ const replays = {
   clinical: ClinicalReplay,
   investor: InvestorReplay,
   eval: EvalReplay,
+  deck: DeckReplay,
 };
+
+const navName = (t: string) =>
+  t === 'Which new investors become valuable?' ? 'Investor value' : t.split(':')[0];
+const isLive = (href: string) => !href.includes('github.com') && !href.startsWith('mailto') && !href.startsWith('/');
 
 const notes = [
   {
@@ -59,7 +65,7 @@ const notes = [
         </p>
         <div class="hero__actions">
           <a class="btn btn--solid" href="mailto:aksh.iitdelhi@gmail.com">Email me</a>
-          <a class="btn" href="/resume.pdf">Read my résumé</a>
+          <a class="btn" href="/akshgoyal_CV.pdf">Download my CV</a>
           <a class="btn" href="https://github.com/AkshGoyal">See my GitHub</a>
         </div>
       </div>
@@ -83,13 +89,13 @@ const notes = [
   <section class="section wrap" id="work">
     <h2 class="section-title">The work, with the evidence</h2>
     <p class="section-lede">
-      Seven projects. Each one shows that I owned a problem end to end, decided what was worth building, and built
-      the pipeline underneath. Pick one, or filter by what you care about.
+      Seven products I built and two product strategy cases. Each shows that I owned a problem end to end, decided
+      what was worth building, and built or planned what sits underneath. Three are live: open them and use them.
     </p>
 
     <div class="index" data-index>
       <div class="index__filters" role="group" aria-label="Filter projects">
-        <button class="chip" type="button" data-filter="all" aria-pressed="true">All seven</button>
+        <button class="chip" type="button" data-filter="all" aria-pressed="true">All {projects.length}</button>
         {(Object.keys(kindLabels) as Kind[]).map((k) => (
           <button class="chip" type="button" data-filter={k} aria-pressed="false">
             {kindLabels[k]} <span class="chip__count">{projects.filter((p) => p.kinds.includes(k)).length}</span>
@@ -119,7 +125,7 @@ const notes = [
     <div class="pbar__inner wrap">
       <span class="pbar__count" aria-live="polite"><b data-explored>0</b> of {projects.length} explored</span>
       <div class="pbar__links">
-        {projects.map((p) => <a href={`#${p.slug}`} data-pbar-link={p.slug}>{p.title.replace('Which new investors become valuable?', 'Investor value')}</a>)}
+        {projects.map((p) => <a href={`#${p.slug}`} data-pbar-link={p.slug}>{navName(p.title)}</a>)}
       </div>
     </div>
   </nav>
@@ -143,6 +149,20 @@ const notes = [
               </div>
             </header>
 
+            {(() => {
+              const live = p.links.find((l) => isLive(l.href));
+              return live ? (
+                <a class="live" href={live.href} target="_blank" rel="noopener" data-explore={p.slug}>
+                  <span class="live__dot" aria-hidden="true"></span>
+                  <span class="live__text">
+                    <b>Live now. Open {navName(p.title)} and use it yourself.</b>
+                    {live.note && <span>{live.note}</span>}
+                  </span>
+                  <span class="live__cta">{live.label}</span>
+                </a>
+              ) : null;
+            })()}
+
             <div class="exhibit__body">
               <div class="exhibit__text">
                 <div class="figure">
@@ -153,26 +173,38 @@ const notes = [
                   <div><dt>Who it’s for</dt><dd>{p.forWhom}</dd></div>
                   <div><dt>Ownership</dt><dd>{p.ownership}</dd></div>
                   <div><dt>Product call</dt><dd>{p.product}</dd></div>
-                  <div><dt>Pipeline</dt><dd>{p.pipeline}</dd></div>
+                  <div><dt>{p.pipelineLabel ?? 'Pipeline'}</dt><dd>{p.pipeline}</dd></div>
                 </dl>
                 <p class="exhibit__stack">Built with {p.stack.join(', ')}</p>
                 <div class="exhibit__links">
                   {p.links.map((l, j) => (
                     <a class={j === 0 ? 'btn btn--solid' : 'btn'} href={l.href} data-explore={p.slug}>{l.label}</a>
                   ))}
-                  {p.shots.length > 0 && (
-                    <button class="btn" type="button" data-gallery={JSON.stringify(p.shots)} data-gallery-title={p.title} data-explore={p.slug}>
-                      See {p.shots.length} {p.shots.length === 1 ? 'screen' : 'screens'}
-                    </button>
-                  )}
                   {p.caseStudy && <a class="textlink" href={p.caseStudy}>Read the case study</a>}
                   {noted && <span class="exhibit__linknote">{noted.note}</span>}
                 </div>
               </div>
               <div class="exhibit__proof" data-try={p.slug}>
-                <Replay />
+                <Replay slides={p.slides} title={p.title} pdf={p.links.find((l) => l.href.endsWith('.pdf'))?.href} />
               </div>
             </div>
+
+            {p.shots.length > 0 && (
+              <div class="strip" aria-label={`${p.title} screenshots`}>
+                <div class="strip__head">
+                  <span>Screens from the real product</span>
+                  <span class="strip__hint">{p.shots.length} {p.shots.length === 1 ? 'image' : 'images'}, click to enlarge</span>
+                </div>
+                <div class="strip__row">
+                  {p.shots.map((sh, j) => (
+                    <button type="button" class="strip__item" data-gallery={JSON.stringify(p.shots)} data-gallery-start={j} data-gallery-title={p.title} data-explore={p.slug}>
+                      <img src={sh.src} alt={sh.alt} loading="lazy" decoding="async" />
+                      <span class="strip__cap">{sh.alt}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {next ? (
               <a class="exhibit__next" href={`#${next.slug}`}>
@@ -281,10 +313,6 @@ const notes = [
       </div>
     </div>
 
-    <p class="decks-line">
-      Earlier product case studies:{' '}
-      {decks.map((d, i) => (<>{i > 0 && ' and '}<a class="textlink" href={d.href}>{d.title.split(':')[0]}</a></>))}.
-    </p>
   </section>
 
   <section class="section wrap" id="contact">
@@ -294,7 +322,7 @@ const notes = [
     <div class="contact">
       <a class="btn btn--solid" href="mailto:aksh.iitdelhi@gmail.com">Email me</a>
       <a class="btn" href="https://linkedin.com/in/akshgoyal">Message on LinkedIn</a>
-      <a class="btn" href="/resume.pdf">Read my résumé</a>
+      <a class="btn" href="/akshgoyal_CV.pdf">Download my CV</a>
     </div>
   </section>
 </BaseLayout>
@@ -477,7 +505,7 @@ const notes = [
       };
       document.querySelectorAll<HTMLButtonElement>('[data-gallery]').forEach((b) =>
         b.addEventListener('click', () => {
-          shots = JSON.parse(b.dataset.gallery!); at = 0; name.textContent = b.dataset.galleryTitle!;
+          shots = JSON.parse(b.dataset.gallery!); at = Number(b.dataset.galleryStart ?? 0); name.textContent = b.dataset.galleryTitle!;
           show(); dlg.showModal();
         })
       );

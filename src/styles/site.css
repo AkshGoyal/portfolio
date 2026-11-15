@@ -903,3 +903,154 @@ a.row:hover .row__title {
     transition: none;
   }
 }
+
+/* Live demo banner: the most direct invitation on the page. */
+.live {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  padding: 14px 18px;
+  border-radius: var(--radius-panel);
+  border: 1px solid color-mix(in srgb, #1f9d63 45%, var(--color-line));
+  background: color-mix(in srgb, #1f9d63 9%, var(--color-paper));
+  color: var(--color-ink);
+  text-decoration: none;
+  transition: background-color 0.15s var(--ease), transform 0.15s var(--ease);
+}
+.live:hover {
+  background: color-mix(in srgb, #1f9d63 15%, var(--color-paper));
+}
+.live__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #1f9d63;
+  box-shadow: 0 0 0 0 rgb(31 157 99 / 0.5);
+  animation: live-pulse 2.2s ease-out infinite;
+  flex: none;
+}
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 rgb(31 157 99 / 0.45); }
+  70% { box-shadow: 0 0 0 10px rgb(31 157 99 / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(31 157 99 / 0); }
+}
+.live__text {
+  display: grid;
+  gap: 2px;
+  flex: 1 1 260px;
+}
+.live__text b {
+  font-weight: 650;
+}
+.live__text span {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+.live__cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: var(--radius-control);
+  background: #1b8a57;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.live__cta::after {
+  content: '';
+  width: 0.55em;
+  height: 0.55em;
+  margin-left: 8px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+/* Screenshots, shown openly under each project. */
+.strip {
+  margin-top: 28px;
+}
+.strip__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+.strip__hint {
+  font-weight: 400;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+.strip__row {
+  margin-top: 12px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(260px, 1fr);
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 8px;
+}
+.strip__item {
+  scroll-snap-align: start;
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: zoom-in;
+  color: inherit;
+  font: inherit;
+}
+.strip__item img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  object-position: top left;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-line);
+  background: #fff;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+.strip__item img[src$='.png'],
+.strip__item img[src$='.svg'] {
+  object-fit: contain;
+  object-position: center;
+}
+.strip__item:hover img {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -14px rgb(20 33 61 / 0.45);
+}
+.strip__cap {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--color-muted);
+}
+@media (prefers-reduced-motion: reduce) {
+  .live__dot {
+    animation: none;
+  }
+}
+
+/* Keep wide children (the screenshot strip, tables) from stretching the page on phones. */
+.exhibits {
+  grid-template-columns: minmax(0, 1fr);
+}
+.exhibit,
+.exhibit > *,
+.exhibit__body > *,
+.strip,
+.strip__row {
+  min-width: 0;
+}
+@media (max-width: 640px) {
+  .strip__row {
+    grid-auto-columns: 78%;
+  }
+}
