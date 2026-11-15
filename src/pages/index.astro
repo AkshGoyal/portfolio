@@ -1,439 +1,498 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Tag from '../components/Tag.astro';
+import { projects, alsoBuilt, decks, kindLabels, type Kind } from '../data/projects';
+import DuelyReplay from '../components/replays/DuelyReplay.astro';
+import OutreachReplay from '../components/replays/OutreachReplay.astro';
+import PharmaReplay from '../components/replays/PharmaReplay.astro';
+import TallyReplay from '../components/replays/TallyReplay.astro';
+import ClinicalReplay from '../components/replays/ClinicalReplay.astro';
+import InvestorReplay from '../components/replays/InvestorReplay.astro';
+import EvalReplay from '../components/replays/EvalReplay.astro';
 
-const entries = await getCollection('work');
-const projects = entries
-  .filter((entry) => entry.data.kind === 'project')
-  .sort((a, b) => a.data.order - b.data.order);
-const productDecks = entries
-  .filter((entry) => entry.data.kind === 'product')
-  .sort((a, b) => a.data.order - b.data.order);
-const employment = entries.find((entry) => entry.data.kind === 'employment');
+const replays = {
+  duely: DuelyReplay,
+  outreach: OutreachReplay,
+  pharmagraph: PharmaReplay,
+  tally: TallyReplay,
+  clinical: ClinicalReplay,
+  investor: InvestorReplay,
+  eval: EvalReplay,
+};
 
-const roles = ['AI Engineer', 'Forward Deployed Engineer', 'AI Product'];
-
-// These sit inside the Aspect Ratio entry, directly under the description that
-// introduces the work, because each one is meaningless without it — a reader
-// who meets "40+ countries" before hearing about a tender tool has no idea
-// what is being counted.
-const impact = [
+const notes = [
   {
-    figure: '94%',
-    label: 'accuracy reached by the chatbot, once I had an evaluation framework measuring it',
+    title: '15 months inside a global pharma company’s vaccines team',
+    body: 'Sat with its marketing, medical and bidding teams and turned briefs with no precedent into tools they use. I also build for my family’s cotton-thread business and a small manufacturer.',
+    href: '#experience',
+    link: 'Experience',
   },
   {
-    figure: '40+',
-    label: 'countries the vaccine tender tool covers, across 5 vaccines',
+    title: 'Three products running live today',
+    body: 'Duely, Grounded Outreach and PharmaGraph each have a link you can open now; the rest have public code.',
+    href: '#work',
+    link: 'See the work',
   },
   {
-    figure: '10',
-    label: 'users who validated the chatbot before it was handed over',
-  },
-];
-
-const highlights = [
-  'Owned an HCP persona-simulation chatbot end to end, from a brief with no internal precedent — framed the problem with the client’s marketing team, designed the architecture, shipped it over a local network. Validated by 10 users, then handed to a large consultancy for production build-out.',
-  'Architected its multi-agent RAG backend: routing agents directing queries across a hybrid retrieval stack (semantic vector search + BM25).',
-  'Built the evaluation framework that took it to 94% accuracy — designed test scenarios and failure paths, then iterated chunking, embedding and search strategy against measured results.',
-  'Built a tender guidance tool for the global vaccines bidding team spanning 40+ countries and 5 vaccines, putting pricing and bid-strategy guidance at the point of decision.',
-  'Wrote 4 web scrapers turning undocumented conference sites with no API into structured datasets, and ran an end-to-end SQL analysis of vaccine-effectiveness data behind a European surveillance report.',
-];
-
-// Every claim here is something a reader can go and check in one of the two
-// public repositories, which is the only reason the section earns its space.
-const principles = [
-  {
-    title: 'Measure first, then tune',
-    body: 'RAG systems are easy to fiddle with and impossible to improve blind. On the chatbot I wrote the evaluation scenarios before touching chunking or search — which is the only reason 94% means anything. The eval harness takes that further: it scores retrieval and generation separately, so a wrong answer says which half to fix.',
-  },
-  {
-    title: 'Ordinary code by default, the model only where judgment is needed',
-    body: 'The outreach agent calls a model once per contact, to write. Whether an email is allowed to go — grounding, dedupe, opt-outs, the daily cap — is decided by plain Python that can be tested without a network.',
-  },
-  {
-    title: 'Constrain the output, then verify it anyway',
-    body: 'The drafting schema only accepts a contact’s real field names, so a model cannot cite a source that doesn’t exist. Then code checks every name, place and number against that contact’s data. Plan My Day does the same with task ids: one that matches no real row never reaches the screen.',
-  },
-  {
-    title: 'One boundary for every model call',
-    body: 'In the eval harness, every call passes through one module that caches on the full request, enforces a hard spending limit, counts retries and pins the provider. In the outreach agent, a test fails the build if anything outside the adapters imports a vendor library.',
-  },
-  {
-    title: 'Write down the limits',
-    body: 'The outreach checker has one known blind spot, and it is recorded as a test so it can’t be forgotten. The eval harness counts errors next to scores, so 90% never quietly means 90% of the cases that didn’t crash. Plan My Day has no auth, so it binds to 127.0.0.1 and says so.',
-  },
-];
-
-const contacts = [
-  {
-    label: 'Email',
-    value: 'aksh.iitdelhi@gmail.com',
-    href: 'mailto:aksh.iitdelhi@gmail.com',
-  },
-  {
-    label: 'GitHub',
-    value: 'github.com/akshgoyal',
-    href: 'https://github.com/akshgoyal',
-  },
-  {
-    label: 'LinkedIn',
-    value: 'linkedin.com/in/akshgoyal',
-    href: 'https://linkedin.com/in/akshgoyal',
+    title: '0 wrong facts in 15 real prospect emails. 94% accuracy at work.',
+    body: 'I write the evaluation before tuning anything, so the number means something and a failure says where to look.',
+    href: '#grounded-outreach',
+    link: 'The evaluation',
   },
 ];
 ---
 
 <BaseLayout
-  title="Aksh Goyal — AI Engineer"
-  description="I build AI systems that have to be right: RAG for a global pharmaceutical company, a harness that shows which half of a RAG system broke, and outreach email that can’t invent a fact."
+  title="Aksh Goyal: forward-deployed AI product builder"
+  description="I sit with the people who have the problem, ship the AI product they use, and prove it works. Seven projects, three live, every claim linked to its evidence."
 >
-  <div class="mx-auto max-w-3xl px-6 sm:px-8">
-    <section class="pt-16 pb-14 sm:pt-20">
-      <h1
-        class="font-display text-4xl font-semibold tracking-tight text-ink sm:text-5xl"
-      >
-        Aksh Goyal
-      </h1>
-      <p class="mt-5 max-w-2xl text-lg leading-relaxed text-muted sm:text-xl">
-        I build AI systems that have to be right — and the tooling that proves
-        whether they are.
-      </p>
-      <p class="mt-4 max-w-2xl leading-relaxed text-muted">
-        Fifteen months embedded with the Vaccines Commercial team of a global
-        pharmaceutical company, building the RAG systems and internal tools
-        their marketing, medical and bidding teams use. IIT Delhi, 2025.
-      </p>
-
-      <div class="mt-7 flex flex-wrap items-center gap-2">
-        <span class="mr-1 text-[0.875rem] text-muted">Open to</span>
-        {roles.map((role) => <Tag label={role} />)}
-      </div>
-
-      <div class="mt-9 flex flex-wrap gap-3">
-        <a
-          href="#projects"
-          class="rounded-[3px] bg-accent px-4 py-2.5 font-mono text-[0.8125rem] text-on-accent transition-opacity hover:opacity-88"
-          >See what I've built</a
-        >
-        <a
-          href="#product"
-          class="rounded-[3px] border border-line px-4 py-2.5 font-mono text-[0.8125rem] text-ink transition-colors hover:border-accent hover:text-accent"
-          >Product decks</a
-        >
-        <a
-          href="/resume.pdf"
-          class="rounded-[3px] border border-line px-4 py-2.5 font-mono text-[0.8125rem] text-ink transition-colors hover:border-accent hover:text-accent"
-          >Resume</a
-        >
-        <a
-          href="mailto:aksh.iitdelhi@gmail.com"
-          class="rounded-[3px] border border-line px-4 py-2.5 font-mono text-[0.8125rem] text-ink transition-colors hover:border-accent hover:text-accent"
-          >Email me</a
-        >
-      </div>
-    </section>
-
-    <section id="experience" class="scroll-mt-8 border-t border-line py-12">
-      <h2
-        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
-      >
-        Experience
-      </h2>
-
-      <div class="mt-7" data-reveal>
-        <div
-          class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1"
-        >
-          <h3 class="font-display text-lg font-semibold tracking-tight text-ink">
-            Analyst — Aspect Ratio
-          </h3>
-          <p class="font-mono text-[0.75rem] text-muted">Jun 2025 – Aug 2026</p>
-        </div>
-        <p class="mt-3 max-w-2xl leading-relaxed text-muted">
-          AI &amp; strategy consulting. For 15 months I was embedded with the
-          Vaccines Commercial team of a global pharmaceutical company — sitting
-          with their marketing, medical and global bidding teams, turning briefs
-          with no internal precedent into software they use.
+  <section class="hero wrap" data-hero>
+    <svg class="traces" aria-hidden="true" data-traces></svg>
+    <div class="hero__grid">
+      <div>
+        <h1 class="hero__claim">
+          I <a class="cite" href="#note-1" data-cite="1">sit with the people who have the problem<sup>1</sup></a>, <a class="cite" href="#note-2" data-cite="2">ship the AI product they use<sup>2</sup></a>, and <a class="cite" href="#note-3" data-cite="3">prove it works<sup>3</sup></a>.
+        </h1>
+        <p class="hero__who">
+          <img class="hero__photo" src="/aksh.png" width="88" height="88" alt="Aksh Goyal" />
+          <strong>Aksh Goyal</strong>, IIT Delhi 2025. I’m looking for AI product and forward-deployed roles on
+          small teams that move fast and expect ownership.
         </p>
+        <div class="hero__actions">
+          <a class="btn btn--solid" href="mailto:aksh.iitdelhi@gmail.com">Email me</a>
+          <a class="btn" href="/resume.pdf">Read my résumé</a>
+          <a class="btn" href="https://github.com/AkshGoyal">See my GitHub</a>
+        </div>
+      </div>
 
-        <dl class="mt-7 grid gap-px border-y border-line sm:grid-cols-3">
-          {
-            impact.map((item, index) => (
-              <div class="py-5 sm:pr-6" data-reveal data-reveal-index={index}>
-                <dt class="font-display text-3xl font-semibold tracking-tight text-ink">
-                  {item.figure}
-                </dt>
-                <dd class="mt-1 max-w-[24ch] text-[0.875rem] leading-snug text-muted">
-                  {item.label}
-                </dd>
-              </div>
-            ))
-          }
-        </dl>
-
-        <ul class="mt-6 max-w-2xl">
-          {
-            highlights.map((item) => (
-              <li class="relative mt-3 pl-6 leading-relaxed text-muted before:absolute before:left-0 before:top-[0.75em] before:h-px before:w-3 before:bg-line">
-                {item}
-              </li>
-            ))
-          }
-        </ul>
-
+      <ol class="notes" aria-label="Sources for the claims above">
         {
-          employment && (
-            <p class="mt-6 font-mono text-[0.8125rem]">
-              <a
-                href={`/work/${employment.id}/`}
-                class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
-              >
-                Read how the chatbot was built
+          notes.map((n, i) => (
+            <li class="note" id={`note-${i + 1}`} data-note={i + 1}>
+              <div class="note__num">{i + 1}</div>
+              <div class="note__title">{n.title}</div>
+              <p class="note__body">
+                {n.body} <a href={n.href}>{n.link}</a>
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section class="section wrap" id="work">
+    <h2 class="section-title">The work, with the evidence</h2>
+    <p class="section-lede">
+      Seven projects. Each one shows that I owned a problem end to end, decided what was worth building, and built
+      the pipeline underneath. Pick one, or filter by what you care about.
+    </p>
+
+    <div class="index" data-index>
+      <div class="index__filters" role="group" aria-label="Filter projects">
+        <button class="chip" type="button" data-filter="all" aria-pressed="true">All seven</button>
+        {(Object.keys(kindLabels) as Kind[]).map((k) => (
+          <button class="chip" type="button" data-filter={k} aria-pressed="false">
+            {kindLabels[k]} <span class="chip__count">{projects.filter((p) => p.kinds.includes(k)).length}</span>
+          </button>
+        ))}
+      </div>
+      <ol class="index__list">
+        {projects.map((p) => (
+          <li data-kinds={p.kinds.join(' ')}>
+            <a class="index__row" href={`#${p.slug}`} data-goto={p.slug}>
+              <span class="index__title">{p.title}</span>
+              <span class="index__short">{p.short}</span>
+              <span class="index__tags">
+                {p.links.some((l) => !l.href.includes('github.com') && !l.href.startsWith('mailto')) && <span class="tag tag--live">Live</span>}
+                {p.links.some((l) => l.href.includes('github.com')) && <span class="tag">Code</span>}
+                {p.links.every((l) => l.href.startsWith('mailto')) && <span class="tag">Charts</span>}
+                <span class="index__seen" data-seen-mark={p.slug} aria-label="Explored" hidden>✓</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <nav class="pbar" aria-label="Projects" data-pbar>
+    <div class="pbar__inner wrap">
+      <span class="pbar__count" aria-live="polite"><b data-explored>0</b> of {projects.length} explored</span>
+      <div class="pbar__links">
+        {projects.map((p) => <a href={`#${p.slug}`} data-pbar-link={p.slug}>{p.title.replace('Which new investors become valuable?', 'Investor value')}</a>)}
+      </div>
+    </div>
+  </nav>
+
+  <div class="wrap exhibits" data-exhibits>
+    {
+      projects.map((p, i) => {
+        const Replay = replays[p.replay];
+        const noted = p.links.find((l) => l.note);
+        const next = projects[i + 1];
+        return (
+          <article class="exhibit" id={p.slug} data-exhibit={p.slug} data-kinds={p.kinds.join(' ')} aria-labelledby={`${p.slug}-title`}>
+            <header class="exhibit__head">
+              <div>
+                <h3 class="exhibit__title" id={`${p.slug}-title`}>{p.title}</h3>
+                <p class="exhibit__line">{p.line}</p>
+              </div>
+              <div class="exhibit__tags">
+                {p.kinds.map((k) => <span class="tag">{kindLabels[k]}</span>)}
+                {p.status && <span class="tag tag--quiet">{p.status}</span>}
+              </div>
+            </header>
+
+            <div class="exhibit__body">
+              <div class="exhibit__text">
+                <div class="figure">
+                  <span class="figure__num">{p.evidence.figure}</span>
+                  <span class="figure__label">{p.evidence.label}</span>
+                </div>
+                <dl class="evidence-lines">
+                  <div><dt>Who it’s for</dt><dd>{p.forWhom}</dd></div>
+                  <div><dt>Ownership</dt><dd>{p.ownership}</dd></div>
+                  <div><dt>Product call</dt><dd>{p.product}</dd></div>
+                  <div><dt>Pipeline</dt><dd>{p.pipeline}</dd></div>
+                </dl>
+                <p class="exhibit__stack">Built with {p.stack.join(', ')}</p>
+                <div class="exhibit__links">
+                  {p.links.map((l, j) => (
+                    <a class={j === 0 ? 'btn btn--solid' : 'btn'} href={l.href} data-explore={p.slug}>{l.label}</a>
+                  ))}
+                  {p.shots.length > 0 && (
+                    <button class="btn" type="button" data-gallery={JSON.stringify(p.shots)} data-gallery-title={p.title} data-explore={p.slug}>
+                      See {p.shots.length} {p.shots.length === 1 ? 'screen' : 'screens'}
+                    </button>
+                  )}
+                  {p.caseStudy && <a class="textlink" href={p.caseStudy}>Read the case study</a>}
+                  {noted && <span class="exhibit__linknote">{noted.note}</span>}
+                </div>
+              </div>
+              <div class="exhibit__proof" data-try={p.slug}>
+                <Replay />
+              </div>
+            </div>
+
+            {next ? (
+              <a class="exhibit__next" href={`#${next.slug}`}>
+                <span>Next</span> {next.title}: <span class="exhibit__nextline">{next.short}</span>
               </a>
-            </p>
-          )
-        }
-      </div>
-
-      <div class="mt-10 border-t border-line pt-8" data-reveal>
-        <div
-          class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1"
-        >
-          <h3 class="font-display text-lg font-semibold tracking-tight text-ink">
-            Summer Trainee — Grant Thornton Bharat
-          </h3>
-          <p class="font-mono text-[0.75rem] text-muted">
-            2023 &amp; 2024, public sector consulting
-          </p>
-        </div>
-        <p class="mt-3 max-w-2xl leading-relaxed text-muted">
-          Two summers on government engagements: a Power BI dashboard tracking a
-          large-scale resource deployment state-wise and designation-wise, and —
-          the year before — unifying citizen datasets in Alteryx behind a
-          Tableau dashboard covering 15+ schemes, reviewed quarterly by state
-          leadership.
-        </p>
-        <p class="mt-4 font-mono text-[0.8125rem]">
-          <a
-            href="/about/"
-            class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
-            >More background</a
-          >
-        </p>
-      </div>
-    </section>
-
-    <section id="approach" class="scroll-mt-8 border-t border-line py-12">
-      <h2
-        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
-      >
-        How I build
-      </h2>
-      <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
-        Five things I do consistently. Each one points at something specific in
-        the work below, not a general belief.
-      </p>
-
-      <dl class="mt-7">
-        {
-          principles.map((principle, index) => (
-            <div
-              class="border-line py-6 not-first:border-t"
-              data-reveal
-              data-reveal-index={index}
-            >
-              <dt class="font-display text-[1.0625rem] font-semibold tracking-tight text-ink">
-                {principle.title}
-              </dt>
-              <dd class="mt-2 max-w-2xl leading-relaxed text-muted">
-                {principle.body}
-              </dd>
-            </div>
-          ))
-        }
-      </dl>
-    </section>
-
-    <section id="projects" class="scroll-mt-8 border-t border-line py-12">
-      <h2
-        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
-      >
-        Projects
-      </h2>
-      <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
-        Built outside work. Each page covers the problem, the architecture, and
-        the decisions that were actually hard — including the ones that went
-        wrong first.
-      </p>
-
-      <ul class="mt-7">
-        {
-          projects.map((project, index) => (
-            <li
-              class="border-line not-first:border-t"
-              data-reveal
-              data-reveal-index={index}
-            >
-              <div class="-mx-4 px-4 py-7">
-                <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-                  <h3 class="font-display text-xl font-semibold tracking-tight text-ink">
-                    <a
-                      href={`/work/${project.id}/`}
-                      class="underline-offset-4 transition-colors hover:text-accent hover:underline"
-                    >
-                      {project.data.title}
-                    </a>
-                  </h3>
-                  <p class="font-mono text-[0.75rem] text-muted">
-                    {project.data.period} · {project.data.stack.join(' · ')}
-                  </p>
-                </div>
-                <p class="mt-3 max-w-2xl leading-relaxed text-muted">
-                  {project.data.tagline}
-                </p>
-                <p class="mt-4 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[0.8125rem]">
-                  <a
-                    href={`/work/${project.id}/`}
-                    class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
-                  >
-                    Read the case study
-                  </a>
-                  {project.data.repoUrl && !project.data.repoPrivate && (
-                    <>
-                      <a
-                        href={project.data.repoUrl}
-                        class="text-muted underline underline-offset-4 transition-colors hover:text-accent"
-                      >
-                        Source on GitHub
-                      </a>
-                      <a
-                        href={`/work/${project.id}/#run-it-yourself`}
-                        class="text-muted underline underline-offset-4 transition-colors hover:text-accent"
-                      >
-                        Run it yourself
-                      </a>
-                    </>
-                  )}
-                </p>
-              </div>
-            </li>
-          ))
-        }
-      </ul>
-
-      <div class="mt-10 border-t border-line pt-8" data-reveal>
-        <h3 class="font-display text-[1.0625rem] font-semibold tracking-tight text-ink">
-          Also built
-        </h3>
-        <p class="mt-3 max-w-2xl leading-relaxed text-muted">
-          <span class="text-ink">GEO optimization engine</span> (Jul 2025) —
-          rewrites webpages so that language models retrieve and cite them.
-          Evaluated against 150+ synthetic LLM queries; citation rate improved
-          41%. Not open source, but the evaluation-first pattern is the same one
-          I use everywhere else.
-        </p>
-      </div>
-    </section>
-
-    <section id="product" class="scroll-mt-8 border-t border-line py-12">
-      <h2
-        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
-      >
-        Product Thinking &amp; Problem Solving
-      </h2>
-      <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
-        Strategic case studies and presentation decks tackling complex systems
-        from first principles — focusing on root cause analysis, operational
-        trade-offs, phased roadmaps, and measurable metrics.
-      </p>
-
-      <ul class="mt-7">
-        {
-          productDecks.map((deck, index) => (
-            <li
-              class="border-line not-first:border-t"
-              data-reveal
-              data-reveal-index={index}
-            >
-              <div class="-mx-4 px-4 py-7">
-                <div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-                  <h3 class="font-display text-xl font-semibold tracking-tight text-ink">
-                    <a
-                      href={`/work/${deck.id}/`}
-                      class="underline-offset-4 transition-colors hover:text-accent hover:underline"
-                    >
-                      {deck.data.title}
-                    </a>
-                  </h3>
-                  <p class="font-mono text-[0.75rem] text-muted">
-                    {deck.data.period}
-                    {deck.data.org && ` · ${deck.data.org}`}
-                  </p>
-                </div>
-                <p class="mt-3 max-w-2xl leading-relaxed text-muted">
-                  {deck.data.tagline}
-                </p>
-                <p class="mt-4 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[0.8125rem]">
-                  <a
-                    href={`/work/${deck.id}/`}
-                    class="text-accent underline underline-offset-4 transition-opacity hover:opacity-70"
-                  >
-                    Read the case study
-                  </a>
-                  {deck.data.deckUrl && (
-                    <a
-                      href={deck.data.deckUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="text-muted underline underline-offset-4 transition-colors hover:text-accent"
-                    >
-                      View slide deck (PDF) →
-                    </a>
-                  )}
-                </p>
-              </div>
-            </li>
-          ))
-        }
-      </ul>
-    </section>
-
-    <section id="contact" class="scroll-mt-8 border-t border-line py-12">
-      <h2
-        class="font-display text-[0.9375rem] font-semibold tracking-tight text-muted"
-      >
-        Contact
-      </h2>
-      <p class="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
-        Email is the fastest way to reach me. Based in India, open to
-        relocating.
-      </p>
-
-      <dl class="mt-7">
-        {
-          contacts.map((contact, index) => (
-            <div
-              class="flex flex-wrap items-baseline gap-x-6 gap-y-1 py-2"
-              data-reveal
-              data-reveal-index={index}
-            >
-              <dt class="w-20 shrink-0 text-[0.9375rem] text-muted">
-                {contact.label}
-              </dt>
-              <dd class="font-mono text-[0.875rem]">
-                <a
-                  href={contact.href}
-                  class="text-ink underline-offset-4 transition-colors hover:text-accent hover:underline"
-                >
-                  {contact.value}
-                </a>
-              </dd>
-            </div>
-          ))
-        }
-      </dl>
-    </section>
+            ) : (
+              <a class="exhibit__next" href="#also"><span>Next</span> Smaller things I’ve built</a>
+            )}
+          </article>
+        );
+      })
+    }
   </div>
+
+  <section class="wrap" id="also">
+    <h3 class="subhead">Also built</h3>
+    <div class="rows">
+      {
+        alsoBuilt.map((a) => (
+          <a class="row" href={a.href}>
+            <span class="row__title">{a.title}</span>
+            <span class="row__line">{a.line}</span>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+
+  <dialog class="gallery" data-gallery-dialog aria-label="Screens">
+    <div class="gallery__bar">
+      <span class="gallery__title" data-gallery-name></span>
+      <span class="gallery__count" data-gallery-count></span>
+      <button class="chip" type="button" data-gallery-prev>Previous</button>
+      <button class="chip" type="button" data-gallery-next>Next</button>
+      <button class="chip" type="button" data-gallery-close>Close</button>
+    </div>
+    <figure class="gallery__fig">
+      <img data-gallery-img alt="" />
+      <figcaption data-gallery-cap></figcaption>
+    </figure>
+  </dialog>
+
+  <section class="section wrap" id="approach">
+    <h2 class="section-title">How I work</h2>
+    <ol class="steps">
+      <li>
+        <h3>Embed</h3>
+        <p>
+          Start where the work happens. The Tally bot lives in the chat a factory owner already uses; PharmaGraph
+          speaks a quality reviewer’s language, not a data scientist’s.
+        </p>
+      </li>
+      <li>
+        <h3>Ship</h3>
+        <p>
+          Get it in front of the person, end to end: database, sign-in, deploy, the boring parts. Ordinary code by
+          default, a model only where judgement is needed, as in <a href="#duely">Duely</a>.
+        </p>
+      </li>
+      <li>
+        <h3>Prove</h3>
+        <p>
+          Write the test before tuning. The <a href="#rag-eval-harness">eval harness</a> separates retrieval from
+          generation; <a href="#grounded-outreach">Grounded Outreach</a> checks every sentence against its source.
+        </p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="section wrap" id="experience">
+    <h2 class="section-title">Experience</h2>
+    <div class="job">
+      <div>
+        <div class="job__role">Analyst, Aspect Ratio</div>
+        <div class="job__when">Jun 2025 to Aug 2026</div>
+      </div>
+      <div class="job__body">
+        <p>
+          AI and strategy consulting. For 15 months I was embedded with the vaccines commercial team of a global
+          pharmaceutical company, turning briefs with no internal precedent into software their marketing, medical
+          and bidding teams use.
+        </p>
+        <div class="job__figs">
+          <div><b>94%</b><span>chatbot accuracy, once an eval framework measured it</span></div>
+          <div><b>40+</b><span>countries in the vaccine tender tool</span></div>
+          <div><b>10</b><span>clinical users validated it before handover</span></div>
+        </div>
+        <ul>
+          <li>Owned a physician-persona chatbot from brief to handover: multi-agent RAG over hybrid search, and the evaluation framework that took it to 94%.</li>
+          <li>Built tender guidance for the global bidding team across 40+ countries and 5 vaccines.</li>
+          <li>Wrote scrapers that turned undocumented conference sites into datasets, and briefed VP-level leaders on AI cases.</li>
+        </ul>
+        <p style="margin-top: 14px"><a class="textlink" href="/work/hcp-persona-chatbot/">How the chatbot was built</a></p>
+      </div>
+    </div>
+    <div class="job">
+      <div>
+        <div class="job__role">Summer trainee, Grant Thornton Bharat</div>
+        <div class="job__when">2023 and 2024</div>
+      </div>
+      <div class="job__body">
+        <p>
+          Public-sector consulting. A Power BI tracker for a large staff deployment, and a Tableau view across 15+
+          citizen schemes that state leadership reviewed every quarter. <a class="textlink" href="/about/">More background</a>
+        </p>
+      </div>
+    </div>
+
+    <p class="decks-line">
+      Earlier product case studies:{' '}
+      {decks.map((d, i) => (<>{i > 0 && ' and '}<a class="textlink" href={d.href}>{d.title.split(':')[0]}</a></>))}.
+    </p>
+  </section>
+
+  <section class="section wrap" id="contact">
+    <h2 class="section-title">If you need someone to own an AI product from the first conversation to the first number</h2>
+    <p class="section-lede">Tell me about the problem and who has it. I’ll tell you how I’d find out what to build.</p>
+    <p class="contact__seen" data-seen-line hidden></p>
+    <div class="contact">
+      <a class="btn btn--solid" href="mailto:aksh.iitdelhi@gmail.com">Email me</a>
+      <a class="btn" href="https://linkedin.com/in/akshgoyal">Message on LinkedIn</a>
+      <a class="btn" href="/resume.pdf">Read my résumé</a>
+    </div>
+  </section>
 </BaseLayout>
+
+<script>
+  // Draw a blue-pencil trace from each cited phrase to its note in the margin.
+  // The traces draw in once on load; after that they answer hover and focus.
+  function initTraces() {
+    const hero = document.querySelector<HTMLElement>('[data-hero]');
+    const svg = hero?.querySelector<SVGSVGElement>('[data-traces]');
+    if (!hero || !svg) return;
+    const cites = Array.from(hero.querySelectorAll<HTMLElement>('[data-cite]'));
+    const notes = Array.from(hero.querySelectorAll<HTMLElement>('[data-note]'));
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let drawn = false;
+
+    const draw = () => {
+      if (getComputedStyle(svg).display === 'none') return;
+      const box = hero.getBoundingClientRect();
+      svg.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
+      svg.innerHTML = '';
+      cites.forEach((c) => {
+        const n = notes.find((x) => x.dataset.note === c.dataset.cite);
+        if (!n) return;
+        const rects = c.getClientRects();
+        const last = rects[rects.length - 1];
+        const a = { x: last.right - box.left + 6, y: last.top - box.top + last.height * 0.55 };
+        const nb = n.getBoundingClientRect();
+        const b = { x: nb.left - box.left - 4, y: nb.top - box.top + 22 };
+        const mid = (a.x + b.x) / 2;
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M${a.x},${a.y} C${mid},${a.y} ${mid},${b.y} ${b.x},${b.y}`);
+        path.dataset.trace = c.dataset.cite;
+        const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        dot.setAttribute('cx', String(b.x));
+        dot.setAttribute('cy', String(b.y));
+        dot.setAttribute('r', '3');
+        svg.append(path, dot);
+        if (!drawn && !reduce) {
+          const len = path.getTotalLength();
+          path.style.strokeDasharray = String(len);
+          path.style.strokeDashoffset = String(len);
+          const delay = 300 + Number(c.dataset.cite) * 380;
+          path.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], {
+            duration: 700,
+            delay,
+            easing: 'cubic-bezier(.22,.61,.36,1)',
+            fill: 'forwards',
+          });
+          dot.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, delay: delay + 650, fill: 'both' });
+        }
+      });
+      drawn = true;
+    };
+
+    const activate = (id: string | null) => {
+      cites.forEach((c) => c.classList.toggle('is-active', c.dataset.cite === id));
+      notes.forEach((n) => n.classList.toggle('is-active', n.dataset.note === id));
+      svg.querySelectorAll<SVGPathElement>('path').forEach((p) => p.classList.toggle('is-active', p.dataset.trace === id));
+    };
+    [...cites, ...notes].forEach((el) => {
+      const id = el.dataset.cite ?? el.dataset.note ?? null;
+      el.addEventListener('mouseenter', () => activate(id));
+      el.addEventListener('mouseleave', () => activate(null));
+      el.addEventListener('focusin', () => activate(id));
+      el.addEventListener('focusout', () => activate(null));
+    });
+
+    (document.fonts?.ready ?? Promise.resolve()).then(draw);
+    let t: number | undefined;
+    window.addEventListener('resize', () => {
+      clearTimeout(t);
+      t = window.setTimeout(draw, 120);
+    });
+  }
+  initTraces();
+  document.addEventListener('astro:after-swap', initTraces);
+</script>
+
+<script>
+  // Filters, the sticky project bar, "explored" tracking, try-it hints and the screens gallery.
+  const KEY = 'explored-projects';
+  const load = (): string[] => {
+    try { return JSON.parse(sessionStorage.getItem(KEY) || '[]'); } catch { return []; }
+  };
+  const save = (v: string[]) => {
+    try { sessionStorage.setItem(KEY, JSON.stringify(v)); } catch { /* storage blocked: counter still works for this page view */ }
+  };
+
+  function initWork() {
+    const exhibits = Array.from(document.querySelectorAll<HTMLElement>('[data-exhibit]'));
+    if (!exhibits.length) return;
+    const total = exhibits.length;
+    let seen = new Set(load());
+
+    const render = () => {
+      document.querySelectorAll<HTMLElement>('[data-explored]').forEach((el) => (el.textContent = String(seen.size)));
+      document.querySelectorAll<HTMLElement>('[data-seen-mark]').forEach((el) => (el.hidden = !seen.has(el.dataset.seenMark!)));
+      document.querySelectorAll<HTMLElement>('[data-pbar-link]').forEach((el) => el.classList.toggle('is-seen', seen.has(el.dataset.pbarLink!)));
+      document.querySelectorAll<HTMLElement>('[data-try]').forEach((el) => el.classList.toggle('is-tried', seen.has(el.dataset.try!)));
+      const line = document.querySelector<HTMLElement>('[data-seen-line]');
+      if (line) {
+        const left = exhibits.map((e) => e.dataset.exhibit!).filter((s) => !seen.has(s));
+        line.hidden = seen.size === 0;
+        if (seen.size === total) line.textContent = `You tried all ${total} projects. Thank you for looking closely.`;
+        else if (left.length) {
+          const next = document.getElementById(`${left[0]}-title`)?.textContent ?? '';
+          line.innerHTML = `You’ve explored ${seen.size} of ${total}. <a class="textlink" href="#${left[0]}">Try ${next} next</a>.`;
+        }
+      }
+    };
+    const mark = (slug: string) => {
+      if (seen.has(slug)) return;
+      seen.add(slug);
+      save([...seen]);
+      render();
+    };
+
+    // A project counts as explored once someone uses its replay or opens its links.
+    document.querySelectorAll<HTMLElement>('[data-try]').forEach((el) => {
+      const slug = el.dataset.try!;
+      ['pointerdown', 'input', 'keydown'].forEach((ev) => el.addEventListener(ev, () => mark(slug), { passive: true }));
+      el.addEventListener('mouseover', (e) => {
+        if ((e.target as HTMLElement).closest('.outreach__s')) mark(slug);
+      });
+    });
+    document.querySelectorAll<HTMLElement>('[data-explore]').forEach((el) =>
+      el.addEventListener('click', () => mark(el.dataset.explore!))
+    );
+
+    // Filters
+    const filters = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    filters.forEach((b) =>
+      b.addEventListener('click', () => {
+        const f = b.dataset.filter!;
+        filters.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        document.querySelectorAll<HTMLElement>('.index__list li').forEach((li) => {
+          li.hidden = f !== 'all' && !li.dataset.kinds!.split(' ').includes(f);
+        });
+        exhibits.forEach((ex) => ex.classList.toggle('is-dimmed', f !== 'all' && !ex.dataset.kinds!.split(' ').includes(f)));
+      })
+    );
+
+    // Sticky bar: visible while the exhibits are on screen, highlights the current one.
+    const bar = document.querySelector<HTMLElement>('[data-pbar]');
+    const zone = document.querySelector<HTMLElement>('[data-exhibits]');
+    const links = document.querySelectorAll<HTMLElement>('[data-pbar-link]');
+    const onScroll = () => {
+      if (!bar || !zone) return;
+      const r = zone.getBoundingClientRect();
+      bar.classList.toggle('is-on', r.top < 120 && r.bottom > 200);
+      let current = '';
+      for (const ex of exhibits) if (ex.getBoundingClientRect().top < window.innerHeight * 0.4) current = ex.dataset.exhibit!;
+      links.forEach((l) => {
+        const on = l.dataset.pbarLink === current;
+        l.classList.toggle('is-current', on);
+        if (on && bar.classList.contains('is-on')) l.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      });
+    };
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { ticking = false; onScroll(); });
+    }, { passive: true });
+    onScroll();
+
+    // Screens gallery
+    const dlg = document.querySelector<HTMLDialogElement>('[data-gallery-dialog]');
+    if (dlg) {
+      const img = dlg.querySelector<HTMLImageElement>('[data-gallery-img]')!;
+      const cap = dlg.querySelector<HTMLElement>('[data-gallery-cap]')!;
+      const name = dlg.querySelector<HTMLElement>('[data-gallery-name]')!;
+      const count = dlg.querySelector<HTMLElement>('[data-gallery-count]')!;
+      let shots: { src: string; alt: string }[] = [];
+      let at = 0;
+      const show = () => {
+        img.src = shots[at].src; img.alt = shots[at].alt; cap.textContent = shots[at].alt;
+        count.textContent = `${at + 1} of ${shots.length}`;
+      };
+      document.querySelectorAll<HTMLButtonElement>('[data-gallery]').forEach((b) =>
+        b.addEventListener('click', () => {
+          shots = JSON.parse(b.dataset.gallery!); at = 0; name.textContent = b.dataset.galleryTitle!;
+          show(); dlg.showModal();
+        })
+      );
+      dlg.querySelector('[data-gallery-next]')!.addEventListener('click', () => { at = (at + 1) % shots.length; show(); });
+      dlg.querySelector('[data-gallery-prev]')!.addEventListener('click', () => { at = (at - 1 + shots.length) % shots.length; show(); });
+      dlg.querySelector('[data-gallery-close]')!.addEventListener('click', () => dlg.close());
+      dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); });
+      dlg.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') { at = (at + 1) % shots.length; show(); }
+        if (e.key === 'ArrowLeft') { at = (at - 1 + shots.length) % shots.length; show(); }
+      });
+    }
+
+    render();
+  }
+  initWork();
+  document.addEventListener('astro:after-swap', initWork);
+</script>

@@ -1,0 +1,90 @@
+---
+// Share of 90-day fees earned by the top X% of the 12,734 users with a full 90 days of history.
+const curve: [number, number][] = [
+  [0, 0], [0.1, 35.2], [0.25, 59.3], [0.5, 78.3], [0.75, 86.3], [1, 90.2], [1.5, 94.1], [2, 95.8],
+  [3, 97.3], [4, 98.2], [5, 98.8], [6, 99.1], [8, 99.6], [10, 99.9], [12, 100], [15, 100],
+];
+const W = 560, H = 250, L = 44, R = 16, T = 14, B = 34, XMAX = 15;
+const x = (p: number) => L + (p / XMAX) * (W - L - R);
+const y = (v: number) => T + (1 - v / 100) * (H - T - B);
+const path = curve.map(([p, v], i) => `${i ? 'L' : 'M'}${x(p).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+---
+
+<div class="replay investor" data-replay="investor">
+  <div class="replay__bar">
+    <span class="replay__caption">How concentrated revenue is. Slide to choose a slice of users.</span>
+  </div>
+  <p class="investor__readout" aria-live="polite">
+    The top <b data-k="p">1%</b> of users earn <b data-k="v">90.2%</b> of all 90-day fees.
+  </p>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Cumulative share of 90-day fees by share of users, highest first">
+    {[0, 25, 50, 75, 100].map((v) => (
+      <g>
+        <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke="var(--color-line)" />
+        <text x={L - 8} y={y(v) + 4} text-anchor="end" font-size="11">{v}%</text>
+      </g>
+    ))}
+    {[0, 1, 5, 10, 15].map((p) => <text x={x(p)} y={H - 12} text-anchor="middle" font-size="11">{p}%</text>)}
+    <line x1={x(13)} x2={x(13)} y1={T} y2={H - B} stroke="var(--color-muted)" stroke-dasharray="4 4" />
+    <text x={x(13) - 6} y={y(18)} text-anchor="end" font-size="11">13% paid any fee</text>
+    <path d={path} fill="none" stroke="var(--color-trace)" stroke-width="2.5" />
+    <line data-gx x1={x(1)} x2={x(1)} y1={y(90.2)} y2={H - B} stroke="var(--color-ink)" />
+    <circle data-dot cx={x(1)} cy={y(90.2)} r="6" fill="var(--color-trace)" />
+  </svg>
+  <input class="investor__range" type="range" min="0.1" max="15" step="0.05" value="1" aria-label="Top share of users, in percent" />
+  <p class="replay__note">The high-value group (at least ₹500 in fees in 90 days, with fees in 2 of 3 months) is 119 users, 0.93% of mature sign-ups, and earns 86% of fees. Aggregates only; no user data is published.</p>
+</div>
+
+<style>
+  .investor svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .investor__readout {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+  }
+  .investor__readout b {
+    font-family: var(--font-sans);
+    color: var(--color-trace);
+    font-variant-numeric: tabular-nums;
+  }
+  .investor__range {
+    width: 100%;
+    accent-color: var(--color-trace);
+  }
+</style>
+
+<script define:vars={{ curve, L, R, T, B, W, H, XMAX }}>
+  function initInvestor() {
+    document.querySelectorAll('[data-replay="investor"]').forEach((root) => {
+      const r = root.querySelector('.investor__range');
+      const dot = root.querySelector('[data-dot]');
+      const gx = root.querySelector('[data-gx]');
+      const kp = root.querySelector('[data-k="p"]');
+      const kv = root.querySelector('[data-k="v"]');
+      const x = (p) => L + (p / XMAX) * (W - L - R);
+      const y = (v) => T + (1 - v / 100) * (H - T - B);
+      const at = (p) => {
+        for (let i = 1; i < curve.length; i++) {
+          const [p0, v0] = curve[i - 1], [p1, v1] = curve[i];
+          if (p <= p1) return v0 + ((p - p0) / (p1 - p0)) * (v1 - v0);
+        }
+        return 100;
+      };
+      const show = () => {
+        const p = Number(r.value), v = at(p);
+        kp.textContent = `${p < 1 ? p.toFixed(2) : p.toFixed(1)}%`;
+        kv.textContent = `${v.toFixed(1)}%`;
+        dot.setAttribute('cx', x(p)); dot.setAttribute('cy', y(v));
+        gx.setAttribute('x1', x(p)); gx.setAttribute('x2', x(p)); gx.setAttribute('y1', y(v));
+      };
+      r.addEventListener('input', show);
+      show();
+    });
+  }
+  initInvestor();
+  document.addEventListener('astro:after-swap', initInvestor);
+</script>

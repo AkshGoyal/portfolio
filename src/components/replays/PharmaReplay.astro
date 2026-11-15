@@ -1,0 +1,120 @@
+---
+// The six readings behind PharmaGraph's batch 031 finding, from the checked-in
+// investigation record (docs/evidence/investigation/batch031.json).
+const pts = [
+  { t: 86.0, v: 298.38, m: 297.99, s: 13.15, row: 34755 },
+  { t: 86.2, v: 298.37, m: 297.99, s: 12.82, row: 34756 },
+  { t: 86.4, v: 298.32, m: 297.99, s: 11.13, row: 34757 },
+  { t: 86.6, v: 298.27, m: 297.98, s: 19.56, row: 34758 },
+  { t: 86.8, v: 298.23, m: 297.99, s: 8.09, row: 34759 },
+  { t: 87.0, v: 298.17, m: 297.99, s: 6.07, row: 34760 },
+];
+const W = 560, H = 260, L = 52, R = 16, T = 16, B = 36;
+const x = (t: number) => L + ((t - 86) / 1) * (W - L - R);
+const y = (v: number) => T + (1 - (v - 297.85) / (298.45 - 297.85)) * (H - T - B);
+const line = pts.map((p) => `${x(p.t).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+const median = pts.map((p) => `${x(p.t).toFixed(1)},${y(p.m).toFixed(1)}`).join(' ');
+const ticks = [297.9, 298.0, 298.1, 298.2, 298.3, 298.4];
+---
+
+<div class="replay pharma" data-replay="pharma">
+  <div class="replay__bar">
+    <span class="replay__caption">Batch 031, temperature. Drag through the six readings.</span>
+  </div>
+  <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Batch 031 temperature against the median of 29 comparable batches, 86 to 87 hours">
+    {ticks.map((v) => (
+      <g>
+        <line x1={L} x2={W - R} y1={y(v)} y2={y(v)} stroke="var(--color-line)" stroke-width="1" />
+        <text x={L - 8} y={y(v) + 4} text-anchor="end" font-size="11">{v.toFixed(1)}</text>
+      </g>
+    ))}
+    {pts.map((p) => <text x={x(p.t)} y={H - 12} text-anchor="middle" font-size="11">{p.t.toFixed(1)} h</text>)}
+    <polyline points={median} fill="none" stroke="var(--color-muted)" stroke-width="1.5" stroke-dasharray="5 4" />
+    <polyline points={line} fill="none" stroke="var(--color-trace)" stroke-width="2.5" />
+    {pts.map((p, i) => <circle data-dot={i} cx={x(p.t)} cy={y(p.v)} r="5" fill="var(--color-trace)" />)}
+    <line data-cursor x1={x(86)} x2={x(86)} y1={T} y2={H - B} stroke="var(--color-ink)" stroke-width="1" />
+    <text x={W - R} y={y(297.99) - 6} text-anchor="end" font-size="11">median of 29 peer batches</text>
+  </svg>
+  <input class="pharma__range" type="range" min="0" max="5" step="1" value="0" aria-label="Choose a reading" />
+  <dl class="pharma__read" aria-live="polite">
+    <div><dt>Time</dt><dd data-k="t">86.0 h</dd></div>
+    <div><dt>Observed</dt><dd data-k="v">298.38 K</dd></div>
+    <div><dt>Peer median</dt><dd data-k="m">297.99 K</dd></div>
+    <div><dt>Deviation score</dt><dd data-k="s">13.15</dd></div>
+    <div class="pharma__src"><dt>Source</dt><dd data-k="row">100_Batches_IndPenSim_V3.csv, row 34,755, column 17, Temperature(T:K)</dd></div>
+  </dl>
+  <p class="replay__note">A reading counts when its score passes 6; a finding needs at least five in a row. All six here pass, so the interval is kept. It describes a statistical difference, not a root cause.</p>
+</div>
+
+<style>
+  .pharma svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .pharma circle {
+    transition: r 0.15s ease;
+  }
+  .pharma circle.is-on {
+    r: 8;
+  }
+  .pharma__range {
+    width: 100%;
+    margin-top: 6px;
+    accent-color: var(--color-trace);
+  }
+  .pharma__read {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .pharma__read dt {
+    font-size: 0.75rem;
+    color: var(--color-muted);
+  }
+  .pharma__read dd {
+    margin: 0;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+  }
+  .pharma__src {
+    grid-column: 1 / -1;
+  }
+  .pharma__src dd {
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+  @media (max-width: 520px) {
+    .pharma__read {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>
+
+<script define:vars={{ pts, xs: pts.map((p) => x(p.t)) }}>
+  function initPharma() {
+    document.querySelectorAll('[data-replay="pharma"]').forEach((root) => {
+      const range = root.querySelector('.pharma__range');
+      const cursor = root.querySelector('[data-cursor]');
+      const dots = root.querySelectorAll('[data-dot]');
+      const out = (k) => root.querySelector(`[data-k="${k}"]`);
+      const show = (i) => {
+        const p = pts[i];
+        out('t').textContent = `${p.t.toFixed(1)} h`;
+        out('v').textContent = `${p.v.toFixed(2)} K`;
+        out('m').textContent = `${p.m.toFixed(2)} K`;
+        out('s').textContent = p.s.toFixed(2);
+        out('row').textContent = `100_Batches_IndPenSim_V3.csv, row ${p.row.toLocaleString('en-IN')}, column 17, Temperature(T:K)`;
+        cursor.setAttribute('x1', xs[i]);
+        cursor.setAttribute('x2', xs[i]);
+        dots.forEach((d, j) => d.classList.toggle('is-on', j === i));
+      };
+      range.addEventListener('input', () => show(Number(range.value)));
+      dots.forEach((d, j) => d.addEventListener('click', () => { range.value = j; show(j); }));
+      show(0);
+    });
+  }
+  initPharma();
+  document.addEventListener('astro:after-swap', initPharma);
+</script>

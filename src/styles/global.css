@@ -1,79 +1,65 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/schibsted-grotesk';
+@import '@fontsource-variable/source-serif-4';
 
-/* Self-hosted fonts — files live in /public/fonts, licenses alongside them. */
-@font-face {
-  font-family: 'Space Grotesk';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 300 700;
-  src: url('/fonts/space-grotesk-latin-wght-normal.woff2') format('woff2-variations');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
-    U+FEFF, U+FFFD;
-}
-
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 100 900;
-  src: url('/fonts/inter-latin-wght-normal.woff2') format('woff2-variations');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
-    U+FEFF, U+FFFD;
-}
-
+/* Code blocks and ASCII diagrams in the case studies stay monospaced. */
 @font-face {
   font-family: 'JetBrains Mono';
   font-style: normal;
   font-display: swap;
   font-weight: 100 800;
   src: url('/fonts/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
-    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
-    U+FEFF, U+FFFD;
-}
-
-@theme {
-  --color-bg: #f7f8fa;
-  --color-surface: #eff1f4;
-  --color-ink: #14161a;
-  --color-muted: #5b616b;
-  --color-line: #dfe2e7;
-  --color-accent: #2c4be0;
-  --color-on-accent: #ffffff;
-
-  --font-display: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
 }
 
 /*
- * Dark palette. Only the token values change — every utility already reads
- * them through var(), so nothing else in the site needs a dark variant.
- * `data-theme` is set by an inline script in the head before first paint, so
- * a returning visitor never sees a flash of the wrong theme.
+ * "Every claim has a source." Cool paper, navy ink, a blue-pencil trace that
+ * connects a claim to its evidence, and a highlighter used only on the claim
+ * that is currently being traced.
  */
+@theme {
+  --color-bg: #f2f4f7;
+  --color-surface: #e7ebf1;
+  --color-paper: #fbfcfd;
+  --color-ink: #14213d;
+  --color-muted: #55617a;
+  --color-line: #cfd6e1;
+  --color-accent: #2f5bea;
+  --color-trace: #2f5bea;
+  --color-mark: #f6d44a;
+  --color-on-accent: #ffffff;
+
+  --font-display: 'Schibsted Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Schibsted Grotesk Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Source Serif 4 Variable', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --color-bg: #0e1013;
-    --color-surface: #16191e;
-    --color-ink: #e8eaed;
-    --color-muted: #9aa1ab;
-    --color-line: #262b33;
-    --color-accent: #7f9cff;
-    --color-on-accent: #0e1013;
+    --color-bg: #0d1626;
+    --color-surface: #142035;
+    --color-paper: #111c30;
+    --color-ink: #e6ebf3;
+    --color-muted: #9aa6bb;
+    --color-line: #24324b;
+    --color-accent: #86a5ff;
+    --color-trace: #86a5ff;
+    --color-mark: #c9a92c;
+    --color-on-accent: #0d1626;
   }
 }
 
 :root[data-theme='dark'] {
-  --color-bg: #0e1013;
-  --color-surface: #16191e;
-  --color-ink: #e8eaed;
-  --color-muted: #9aa1ab;
-  --color-line: #262b33;
-  --color-accent: #7f9cff;
-  --color-on-accent: #0e1013;
+  --color-bg: #0d1626;
+  --color-surface: #142035;
+  --color-paper: #111c30;
+  --color-ink: #e6ebf3;
+  --color-muted: #9aa6bb;
+  --color-line: #24324b;
+  --color-accent: #86a5ff;
+  --color-trace: #86a5ff;
+  --color-mark: #c9a92c;
+  --color-on-accent: #0d1626;
 }
 
 html {

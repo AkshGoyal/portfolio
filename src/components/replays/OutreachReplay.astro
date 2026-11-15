@@ -1,0 +1,152 @@
+---
+// The workbench's happy-path example (fictional prospect, fictional sources),
+// with each sentence tied to where it came from.
+const sentences = [
+  {
+    text: 'I read that Cedar Works is introducing a weekly invoice exception review led by you, with a named owner for each unresolved exception.',
+    kind: 'From the prospect’s news',
+    source: 'Cedar Works news, 15 Oct 2026: “Cedar Works is introducing a weekly invoice exception review led by Maya Rao, with a named owner for each unresolved exception.”',
+    check: 'Dated, about this person, from a page that was read. Kept as the hook: Strong.',
+  },
+  {
+    text: 'ClearLedger Demo can review invoice information against supplied purchase-order records.',
+    kind: 'From your goal',
+    source: 'Your offer, capability 1: “Review invoice information against supplied purchase-order records.”',
+    check: 'A claim about your product, so it must come from your goal, not the web.',
+  },
+  {
+    text: 'It can also show exceptions and route them for human resolution.',
+    kind: 'From your goal',
+    source: 'Your offer, capability 2: “Show exceptions and route them for human resolution.”',
+    check: 'Supporting sentence. Marked optional, so the rep can cut it.',
+  },
+  {
+    text: 'That may be relevant to how your team handles each unresolved exception.',
+    kind: 'Connects the two',
+    source: 'Links the news (“a named owner for each unresolved exception”) to capability 2.',
+    check: 'Says “may”. Asserting their pain (“you’re struggling with…”) would be blocked.',
+  },
+  {
+    text: 'Would a short walkthrough of invoice exception review be useful?',
+    kind: 'From your goal',
+    source: 'Your call to action, word for word.',
+    check: 'No invented meeting times, discounts or urgency.',
+  },
+];
+---
+
+<div class="replay outreach" data-replay="outreach">
+  <div class="replay__bar">
+    <span class="replay__caption">Point at any sentence to see where it came from</span>
+  </div>
+  <div class="outreach__mail">
+    <div class="outreach__to"><span>To</span> Maya Rao, Finance Director, Cedar Works</div>
+    <div class="outreach__body">
+      <p>Hi Maya,</p>
+      <p>
+        {
+          sentences.map((s, i) => (
+            <>
+              <span class="outreach__s" role="button" tabindex="0" data-i={i} aria-pressed={i === 0 ? 'true' : 'false'}>
+                {s.text}
+              </span>{' '}
+            </>
+          ))
+        }
+      </p>
+      <p>Best,<br />Alex Morgan, ClearLedger Demo</p>
+    </div>
+  </div>
+  <div class="outreach__src" aria-live="polite">
+    {
+      sentences.map((s, i) => (
+        <div data-src={i} hidden={i !== 0}>
+          <div class="outreach__kind">{s.kind}</div>
+          <p class="outreach__quote">{s.source}</p>
+          <p class="outreach__check">{s.check}</p>
+        </div>
+      ))
+    }
+  </div>
+  <p class="replay__note">The built-in example. Prospect, company and sources are fictional; the live evaluation used 15 real executives.</p>
+</div>
+
+<style>
+  .outreach__mail {
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    background: var(--color-bg);
+  }
+  .outreach__to {
+    font-size: 0.82rem;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--color-line);
+    color: var(--color-muted);
+  }
+  .outreach__to span {
+    color: var(--color-ink);
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .outreach__body {
+    padding: 12px 14px;
+    font-family: var(--font-serif);
+    font-size: 0.98rem;
+    line-height: 1.65;
+    display: grid;
+    gap: 10px;
+  }
+  .outreach__s {
+    cursor: pointer;
+    outline: none;
+    border-bottom: 1.5px solid color-mix(in srgb, var(--color-trace) 45%, transparent);
+    transition: background-color 0.15s ease;
+  }
+  .outreach__s:hover,
+  .outreach__s[aria-pressed='true'],
+  .outreach__s:focus-visible {
+    background: color-mix(in srgb, var(--color-mark) 55%, transparent);
+    border-bottom-color: var(--color-trace);
+  }
+  .outreach__src {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-left: 2px solid var(--color-trace);
+    min-height: 120px;
+  }
+  .outreach__kind {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-trace);
+  }
+  .outreach__quote {
+    margin-top: 4px;
+    font-family: var(--font-serif);
+    line-height: 1.55;
+  }
+  .outreach__check {
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: var(--color-muted);
+  }
+</style>
+
+<script>
+  function initOutreach() {
+    document.querySelectorAll<HTMLElement>('[data-replay="outreach"]').forEach((root) => {
+      const ss = root.querySelectorAll<HTMLElement>('.outreach__s');
+      const srcs = root.querySelectorAll<HTMLElement>('[data-src]');
+      const pick = (i: string) => {
+        ss.forEach((s) => s.setAttribute('aria-pressed', String(s.dataset.i === i)));
+        srcs.forEach((s) => (s.hidden = s.dataset.src !== i));
+      };
+      ss.forEach((s) => {
+        s.addEventListener('mouseenter', () => pick(s.dataset.i!));
+        s.addEventListener('focus', () => pick(s.dataset.i!));
+        s.addEventListener('click', () => pick(s.dataset.i!));
+      });
+    });
+  }
+  initOutreach();
+  document.addEventListener('astro:after-swap', initOutreach);
+</script>

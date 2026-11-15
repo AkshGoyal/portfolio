@@ -1,0 +1,51 @@
+{
+ "source": "MMR vaccine product information, page 6",
+ "raw": [
+  [
+   "",
+   "Sr.",
+   "",
+   "Container Closure",
+   "Description"
+  ],
+  [
+   null,
+   "no.",
+   null,
+   null,
+   null
+  ],
+  [
+   "1",
+   null,
+   null,
+   "Glass Vials",
+   "5mL, USP Type-I, amber, tubular European blowback glass vials\nHeight 50 mm, Body diameter 16.50 mm"
+  ],
+  [
+   "2",
+   null,
+   null,
+   "Rubber Closures",
+   "13mm, Datwyler FM460, grey coloured rubber stopper and"
+  ]
+ ],
+ "title": "Table: Container Closure System for MMR Vaccine",
+ "rebuilt": [
+  [
+   "Sr. no.",
+   "Container Closure",
+   "Description"
+  ],
+  [
+   "1",
+   "Glass Vials",
+   "5mL, USP Type-I, amber, tubular European blowback glass vials Height 50 mm, Body diameter 16.50 mm"
+  ],
+  [
+   "2",
+   "Rubber Closures",
+   "13mm, Datwyler FM460, grey coloured rubber stopper"
+  ]
+ ]
+}

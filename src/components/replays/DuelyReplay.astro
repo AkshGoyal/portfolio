@@ -1,0 +1,187 @@
+---
+// The demo script's first two beats, replayed with the same fictional invoice.
+const steps = [
+  {
+    id: 'ask',
+    label: 'Owner tells Claude',
+  },
+  { id: 'create', label: 'Claude uses Duely' },
+  { id: 'client', label: 'Client opens the link' },
+  { id: 'promise', label: 'Promise recorded' },
+];
+---
+
+<div class="replay duely" data-replay="duely">
+  <div class="replay__bar">
+    <span class="replay__caption">Replay of the demo, step by step</span>
+    <div class="replay__controls" role="group" aria-label="Duely replay steps">
+      {
+        steps.map((s, i) => (
+          <button class="chip" type="button" data-step={i} aria-pressed={i === 0 ? 'true' : 'false'}>
+            {s.label}
+          </button>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="duely__stage" aria-live="polite">
+    <div class="duely__msg duely__msg--you" data-show="0 1 2 3">
+      Acme Studios owes me ₹85,000 for the October retainer, INV-104, due 20 Oct. Create it in Duely and draft a WhatsApp nudge, firm but friendly.
+    </div>
+
+    <div class="duely__msg duely__msg--claude" data-show="1 2 3">
+      <div class="duely__tool">create_invoice · save_nudge</div>
+      Done. INV-104 is 22 days overdue. Here’s the nudge I wrote:
+      <blockquote>Hi Acme team, a quick reminder that INV-104 (₹85,000, October retainer) was due on 20 Oct. You can pay in one tap here, or tell me a date that works.</blockquote>
+      <span class="duely__links"><span>WhatsApp link</span><span>Pay link</span></span>
+    </div>
+
+    <div class="duely__pay" data-show="2 3">
+      <div class="duely__payhead">Acme Studios · INV-104</div>
+      <div class="duely__amount">₹85,000</div>
+      <div class="duely__late">22 days overdue</div>
+      <div class="duely__btns">
+        <span class="duely__btn duely__btn--pay">Pay with UPI app</span>
+        <span class="duely__btn" data-promise>I’ll pay by a date</span>
+        <span class="duely__btn">There’s an issue</span>
+      </div>
+    </div>
+
+    <div class="duely__status" data-show="3">
+      <span class="duely__dot"></span> Dashboard: <b>Promised</b>, pays by 14 Nov. If the date passes, it’s flagged as a broken promise and moves to the top of “Chase today”.
+    </div>
+  </div>
+  <p class="replay__note">Fictional invoice from the demo script. Claude writes every word; Duely stores it and serves the links.</p>
+</div>
+
+<style>
+  .duely__stage {
+    display: grid;
+    gap: 10px;
+    min-height: 150px;
+    align-content: start;
+  }
+  .duely__msg {
+    max-width: 92%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+  .duely__msg--you {
+    justify-self: end;
+    background: var(--color-ink);
+    color: var(--color-bg);
+    border-bottom-right-radius: 4px;
+  }
+  .duely__msg--claude {
+    background: var(--color-surface);
+    border-bottom-left-radius: 4px;
+  }
+  .duely__msg blockquote {
+    margin: 8px 0;
+    padding-left: 10px;
+    border-left: 2px solid var(--color-trace);
+    font-family: var(--font-serif);
+  }
+  .duely__tool {
+    font-size: 0.75rem;
+    color: var(--color-trace);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .duely__links {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .duely__links span {
+    font-size: 0.78rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    padding: 2px 10px;
+    background: var(--color-paper);
+  }
+  .duely__pay {
+    justify-self: center;
+    width: min(280px, 100%);
+    border: 1px solid var(--color-line);
+    border-radius: 14px;
+    padding: 14px;
+    background: var(--color-bg);
+  }
+  .duely__payhead {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+  }
+  .duely__amount {
+    font-size: 1.7rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .duely__late {
+    font-size: 0.8rem;
+    color: #c0392b;
+  }
+  .duely__btns {
+    margin-top: 10px;
+    display: grid;
+    gap: 6px;
+  }
+  .duely__btn {
+    font-size: 0.82rem;
+    text-align: center;
+    border: 1px solid var(--color-line);
+    border-radius: 8px;
+    padding: 7px;
+  }
+  .duely__btn--pay {
+    background: #138a5b;
+    color: #fff;
+    border-color: #138a5b;
+  }
+  [data-replay='duely'][data-at='3'] [data-promise] {
+    outline: 2px solid var(--color-trace);
+    outline-offset: 1px;
+  }
+  .duely__status {
+    font-size: 0.88rem;
+    line-height: 1.5;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--color-mark) 30%, transparent);
+  }
+  .duely__dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #c98a00;
+    margin-right: 4px;
+  }
+  [data-show] {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  [data-show].is-hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  function initDuely() {
+    document.querySelectorAll<HTMLElement>('[data-replay="duely"]').forEach((root) => {
+      const buttons = root.querySelectorAll<HTMLButtonElement>('[data-step]');
+      const parts = root.querySelectorAll<HTMLElement>('[data-show]');
+      const go = (n: number) => {
+        root.dataset.at = String(n);
+        buttons.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.step) === n)));
+        parts.forEach((p) => p.classList.toggle('is-hidden', !p.dataset.show!.split(' ').includes(String(n))));
+      };
+      buttons.forEach((b) => b.addEventListener('click', () => go(Number(b.dataset.step))));
+      go(0);
+    });
+  }
+  initDuely();
+  document.addEventListener('astro:after-swap', initDuely);
+</script>

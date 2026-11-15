@@ -1,0 +1,92 @@
+---
+import table from '../../data/clinical-table.json';
+const raw = table.raw as (string | null)[][];
+const rebuilt = table.rebuilt as string[][];
+---
+
+<div class="replay clinical" data-replay="clinical">
+  <div class="replay__bar">
+    <span class="replay__caption">One table from the library, page 6 of an MMR vaccine product sheet</span>
+    <div class="replay__controls" role="group" aria-label="Table view">
+      <button class="chip" type="button" data-view="raw" aria-pressed="true">Raw PDF extraction</button>
+      <button class="chip" type="button" data-view="rebuilt" aria-pressed="false">Rebuilt at ingestion</button>
+    </div>
+  </div>
+
+  <div data-pane="raw">
+    <div class="clinical__scroll">
+      <table class="clinical__raw">
+        <tbody>
+          {raw.map((r) => (
+            <tr>{r.map((c) => <td class={c === null ? 'is-null' : c === '' ? 'is-empty' : ''}>{c === null ? 'None' : c === '' ? '""' : c}</td>)}</tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="replay__note">What pdfplumber returns: the header split across two rows, empty and missing cells, and a description cut off mid-sentence. Embedded as-is, a question about the rubber stopper retrieves noise.</p>
+  </div>
+
+  <div data-pane="rebuilt" hidden>
+    <p class="clinical__title">{table.title.replace('Table: ', '')}</p>
+    <div class="clinical__scroll">
+      <table class="clinical__clean">
+        <thead><tr>{rebuilt[0].map((h) => <th>{h}</th>)}</tr></thead>
+        <tbody>{rebuilt.slice(1).map((r) => <tr>{r.map((c) => <td>{c}</td>)}</tr>)}</tbody>
+      </table>
+    </div>
+    <p class="replay__note">The model rebuilt it from the raw cells plus the text just above the table, gave it a title, and the raw table text was removed from the page body so nothing is indexed twice. Source file and page stay on the chunk.</p>
+  </div>
+</div>
+
+<style>
+  .clinical__scroll {
+    overflow-x: auto;
+  }
+  .clinical table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    line-height: 1.45;
+  }
+  .clinical td,
+  .clinical th {
+    border: 1px solid var(--color-line);
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+  }
+  .clinical__raw {
+    font-family: var(--font-mono);
+    font-size: 0.76rem !important;
+  }
+  .clinical__raw .is-null,
+  .clinical__raw .is-empty {
+    color: #c0392b;
+    background: color-mix(in srgb, #c0392b 7%, transparent);
+  }
+  .clinical__clean th {
+    background: var(--color-surface);
+    font-weight: 650;
+  }
+  .clinical__title {
+    font-weight: 650;
+    margin-bottom: 8px;
+  }
+</style>
+
+<script>
+  function initClinical() {
+    document.querySelectorAll<HTMLElement>('[data-replay="clinical"]').forEach((root) => {
+      const btns = root.querySelectorAll<HTMLButtonElement>('[data-view]');
+      const panes = root.querySelectorAll<HTMLElement>('[data-pane]');
+      btns.forEach((b) =>
+        b.addEventListener('click', () => {
+          btns.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+          panes.forEach((p) => (p.hidden = p.dataset.pane !== b.dataset.view));
+        })
+      );
+    });
+  }
+  initClinical();
+  document.addEventListener('astro:after-swap', initClinical);
+</script>
