@@ -16,9 +16,19 @@ export interface Link {
   note?: string;
 }
 
+export type Kind = 'live' | 'ai' | 'data';
+
+export const kindLabels: Record<Kind, string> = {
+  live: 'Live apps',
+  ai: 'AI pipelines',
+  data: 'Data and analytics',
+};
+
 export interface Project {
   slug: string;
   title: string;
+  short: string;
+  kinds: Kind[];
   line: string;
   forWhom: string;
   evidence: { figure: string; label: string };
@@ -36,6 +46,8 @@ export interface Project {
 export const projects: Project[] = [
   {
     slug: 'duely',
+    short: 'Claude chases your overdue invoices over MCP',
+    kinds: ['live', 'ai'],
     title: 'Duely',
     line: 'Your own Claude chases overdue invoices. Duely keeps every payment link live and every client promise on record.',
     forWhom: 'Freelancers and small agencies in India waiting on late payments.',
@@ -58,10 +70,13 @@ export const projects: Project[] = [
     shots: [
       { src: '/work/duely/dashboard.jpg', alt: 'Duely dashboard: receivables by age, who to chase today, and every invoice with its latest client response' },
       { src: '/work/duely/pay.jpg', alt: 'The client pay page on a phone: amount, days overdue, a UPI pay button and QR code' },
+      { src: '/work/duely/metrics.jpg', alt: 'Duely metrics: what was collected, promised and still open' },
     ],
   },
   {
     slug: 'grounded-outreach',
+    short: 'Sales email where every sentence has a source',
+    kinds: ['live', 'ai'],
     title: 'Grounded Outreach',
     line: 'Personalised B2B email where every sentence traces to a public source, and nothing is sent until a person approves the exact text.',
     forWhom: 'Sales teams, starting with my family’s cotton-thread business reaching new buyers.',
@@ -84,11 +99,14 @@ export const projects: Project[] = [
     shots: [
       { src: '/work/grounded-outreach/draft.jpg', alt: 'A drafted email with every sentence underlined and linked to its source, and the hook judged on the right' },
       { src: '/work/grounded-outreach/evaluation.jpg', alt: 'Evaluation page: 14 of 15 ready to send, 0 wrong facts, 27 seconds and $0.020 per prospect' },
+      { src: '/work/grounded-outreach/new.jpg', alt: 'Starting a prospect: the goal, the person, and fictional examples for each edge case' },
     ],
     caseStudy: '/work/outreach-agent/',
   },
   {
     slug: 'pharmagraph',
+    short: 'From an odd batch reading to its source row',
+    kinds: ['live', 'data'],
     title: 'PharmaGraph',
     line: 'Follow a batch investigation from an unusual reading to the exact row in the source data it came from.',
     forWhom: 'Quality reviewers investigating pharmaceutical fermentation batches.',
@@ -111,10 +129,14 @@ export const projects: Project[] = [
     shots: [
       { src: '/work/pharmagraph/finding.jpg', alt: 'Batch 031 temperature above its peer reference between 86 and 87 hours, with the reasoning beside it' },
       { src: '/work/pharmagraph/source-trace.jpg', alt: 'A selected reading with its peer comparison and the CSV row and column it came from' },
+      { src: '/work/pharmagraph/architecture.jpg', alt: 'Architecture: published source, Parquet measurements and a Neo4j index, then the Python comparison' },
+      { src: '/work/pharmagraph/overview.jpg', alt: 'PharmaGraph project overview' },
     ],
   },
   {
     slug: 'tally-slip-bot',
+    short: 'Handwritten slip photo to Tally invoice',
+    kinds: ['ai'],
     title: 'Tally Slip Bot',
     line: 'Photograph a handwritten delivery slip and get a Tally invoice.',
     forWhom: 'A small manufacturer whose handwritten slips were re-typed into Tally every week.',
@@ -135,6 +157,8 @@ export const projects: Project[] = [
   },
   {
     slug: 'clinical-evidence-assistant',
+    short: 'RAG over 48 clinical PDFs, tables rebuilt',
+    kinds: ['ai'],
     title: 'Clinical Evidence Assistant',
     line: 'Ask a clinical question and get an answer grounded in the trial data, with the numbers in a table.',
     forWhom: 'Teams who need to know what the vaccine literature says, on demand.',
@@ -155,6 +179,8 @@ export const projects: Project[] = [
   },
   {
     slug: 'investor-value-analysis',
+    short: 'Who becomes valuable, and who to watch in week one',
+    kinds: ['data'],
     title: 'Which new investors become valuable?',
     line: 'For a retail investing app: who is worth keeping, who to watch in week one, where marketing money should go, and how fragile revenue is.',
     forWhom: 'The growth and marketing teams of a retail investing app (20,000 sign-ups, 130,000 orders).',
@@ -171,10 +197,17 @@ export const projects: Project[] = [
     stack: ['Python', 'pandas', 'scikit-learn', 'matplotlib'],
     links: [{ label: 'Code available on request', href: 'mailto:aksh.iitdelhi@gmail.com?subject=Investor%20value%20analysis' }],
     replay: 'investor',
-    shots: [{ src: '/work/investor-value-analysis/q2_weekly.png', alt: 'Weekly watchlist hit rate on the out-of-time test weeks' }],
+    shots: [
+      { src: '/work/investor-value-analysis/q2_weekly.png', alt: 'Weekly watchlist hits on the out-of-time test weeks' },
+      { src: '/work/investor-value-analysis/q1_signals.png', alt: 'First-week signals that separate high-value users from the rest' },
+      { src: '/work/investor-value-analysis/q3_channels.png', alt: 'Acquisition channel quality compared at equal user age' },
+      { src: '/work/investor-value-analysis/q4_stress.png', alt: 'Stress test: what happens if the largest revenue source shrinks' },
+    ],
   },
   {
     slug: 'rag-eval-harness',
+    short: 'Tells you whether retrieval or generation broke',
+    kinds: ['ai', 'data'],
     title: 'RAG Eval Harness',
     line: 'Measures whether a change to a RAG system actually helped, and when it didn’t, whether retrieval or generation broke.',
     forWhom: 'Anyone tuning a retrieval system by intuition.',
@@ -191,7 +224,7 @@ export const projects: Project[] = [
     stack: ['Python', 'NumPy', 'Pydantic', 'OpenRouter'],
     links: [{ label: 'Read the code', href: 'https://github.com/AkshGoyal/Rag-Eval-Harness' }],
     replay: 'eval',
-    shots: [],
+    shots: [{ src: '/work/rag-eval-harness/chunk-size-recall.svg', alt: 'Retrieval recall by chunk size' }],
     status: 'In progress: phase 5 of 14',
     caseStudy: '/work/rag-eval-harness/',
   },
