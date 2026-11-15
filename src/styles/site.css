@@ -1054,3 +1054,11 @@ a.row:hover .row__title {
     grid-auto-columns: 78%;
   }
 }
+
+@media (min-width: 640px) {
+  .job__figs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+}
