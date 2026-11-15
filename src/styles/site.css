@@ -218,6 +218,17 @@ body {
   line-height: 1.55;
   color: var(--color-muted);
 }
+.hero__photo {
+  float: left;
+  width: 88px;
+  height: 88px;
+  margin: 2px 18px 6px 0;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 40%;
+  background: var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-line);
+}
 .hero__who strong {
   color: var(--color-ink);
   font-weight: 600;
