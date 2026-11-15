@@ -319,9 +319,6 @@ body {
   border-top: 1px solid var(--color-line);
   transition: opacity 0.25s var(--ease);
 }
-.exhibit.is-dimmed {
-  opacity: 0.28;
-}
 .exhibit__head {
   display: flex;
   flex-wrap: wrap;
@@ -1061,4 +1058,43 @@ a.row:hover .row__title {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 24px;
   }
+}
+
+/* Filter: chosen work first, then the rest under a divider. */
+.index__status {
+  margin-top: 14px;
+  font-size: 0.92rem;
+  color: var(--color-muted);
+}
+.index__divider {
+  list-style: none;
+  padding: 22px 4px 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  border-bottom: 1px solid var(--color-line);
+}
+.exhibits__divider {
+  padding: 28px 0 0;
+  border-top: 2px solid var(--color-ink);
+}
+.exhibits__divider h3 {
+  font-size: clamp(1.3rem, 2.2vw, 1.6rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+.exhibits__divider p {
+  margin-top: 6px;
+  color: var(--color-muted);
+  font-family: var(--font-serif);
+}
+.pbar__sep {
+  flex: none;
+  width: 1px;
+  margin: 4px 6px;
+  background: var(--color-line);
+}
+.exhibits__divider + .exhibit {
+  border-top: 0;
+  padding-top: 0;
 }

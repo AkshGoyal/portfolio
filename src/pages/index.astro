@@ -102,21 +102,24 @@ const notes = [
           </button>
         ))}
       </div>
-      <ol class="index__list">
+      <p class="index__status" data-filter-status aria-live="polite" hidden></p>
+      <ol class="index__list" data-index-list>
         {projects.map((p) => (
-          <li data-kinds={p.kinds.join(' ')}>
+          <li data-kinds={p.kinds.join(' ')} data-slug={p.slug}>
             <a class="index__row" href={`#${p.slug}`} data-goto={p.slug}>
               <span class="index__title">{p.title}</span>
               <span class="index__short">{p.short}</span>
               <span class="index__tags">
-                {p.links.some((l) => !l.href.includes('github.com') && !l.href.startsWith('mailto')) && <span class="tag tag--live">Live</span>}
+                {p.links.some((l) => isLive(l.href)) && <span class="tag tag--live">Live</span>}
                 {p.links.some((l) => l.href.includes('github.com')) && <span class="tag">Code</span>}
+                {p.links.some((l) => l.href.endsWith('.pdf')) && <span class="tag">Deck</span>}
                 {p.links.every((l) => l.href.startsWith('mailto')) && <span class="tag">Charts</span>}
                 <span class="index__seen" data-seen-mark={p.slug} aria-label="Explored" hidden>✓</span>
               </span>
             </a>
           </li>
         ))}
+        <li class="index__divider" data-index-divider aria-hidden="true" hidden>The rest of the work</li>
       </ol>
     </div>
   </section>
@@ -126,18 +129,23 @@ const notes = [
       <span class="pbar__count" aria-live="polite"><b data-explored>0</b> of {projects.length} explored</span>
       <div class="pbar__links">
         {projects.map((p) => <a href={`#${p.slug}`} data-pbar-link={p.slug}>{navName(p.title)}</a>)}
+        <span class="pbar__sep" data-pbar-sep aria-hidden="true" hidden></span>
       </div>
     </div>
   </nav>
 
   <div class="wrap exhibits" data-exhibits>
+    <div class="exhibits__divider" data-ex-divider hidden>
+      <h3>The rest of the work</h3>
+      <p data-ex-divider-text></p>
+    </div>
     {
       projects.map((p, i) => {
         const Replay = replays[p.replay];
         const noted = p.links.find((l) => l.note);
         const next = projects[i + 1];
         return (
-          <article class="exhibit" id={p.slug} data-exhibit={p.slug} data-kinds={p.kinds.join(' ')} aria-labelledby={`${p.slug}-title`}>
+          <article class="exhibit" id={p.slug} data-exhibit={p.slug} data-kinds={p.kinds.join(' ')} data-title={p.title} data-short={p.short} aria-labelledby={`${p.slug}-title`}>
             <header class="exhibit__head">
               <div>
                 <h3 class="exhibit__title" id={`${p.slug}-title`}>{p.title}</h3>
@@ -453,16 +461,73 @@ const notes = [
       el.addEventListener('click', () => mark(el.dataset.explore!))
     );
 
-    // Filters
+    // Filters: matching work moves to the top everywhere (index, sections, sticky bar);
+    // the rest follows under a "The rest of the work" divider. "All" restores the original order.
     const filters = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+    const list = document.querySelector<HTMLElement>('[data-index-list]')!;
+    const rows = Array.from(list.querySelectorAll<HTMLElement>('li[data-slug]'));
+    const indexDivider = list.querySelector<HTMLElement>('[data-index-divider]')!;
+    const zoneEl = document.querySelector<HTMLElement>('[data-exhibits]')!;
+    const exDivider = zoneEl.querySelector<HTMLElement>('[data-ex-divider]')!;
+    const exDividerText = exDivider.querySelector<HTMLElement>('[data-ex-divider-text]')!;
+    const barLinks = document.querySelector<HTMLElement>('.pbar__links')!;
+    const barSep = barLinks.querySelector<HTMLElement>('[data-pbar-sep]')!;
+    const status = document.querySelector<HTMLElement>('[data-filter-status]')!;
+    const original = exhibits.map((e) => e.dataset.exhibit!);
+    const labelOf = (b: HTMLButtonElement) => b.firstChild?.textContent?.trim() ?? '';
+
+    const relinkNext = (order: HTMLElement[]) => {
+      order.forEach((ex, i) => {
+        const a = ex.querySelector<HTMLAnchorElement>('.exhibit__next');
+        if (!a) return;
+        const nx = order[i + 1];
+        if (nx) {
+          a.href = `#${nx.dataset.exhibit}`;
+          a.innerHTML = `<span>Next</span> ${nx.dataset.title}: <span class="exhibit__nextline">${nx.dataset.short}</span>`;
+        } else {
+          a.href = '#also';
+          a.innerHTML = '<span>Next</span> Smaller things I’ve built';
+        }
+      });
+    };
+
+    const applyFilter = (f: string, label: string) => {
+      const match = (k: string) => f === 'all' || k.split(' ').includes(f);
+      const bySlug = new Map(exhibits.map((e) => [e.dataset.exhibit!, e]));
+      const first = original.filter((s) => match(bySlug.get(s)!.dataset.kinds!));
+      const rest = original.filter((s) => !first.includes(s));
+      const split = f !== 'all' && rest.length > 0;
+
+      // Index rows
+      first.forEach((s) => list.insertBefore(rows.find((r) => r.dataset.slug === s)!, indexDivider));
+      list.appendChild(indexDivider);
+      rest.forEach((s) => list.appendChild(rows.find((r) => r.dataset.slug === s)!));
+      indexDivider.hidden = !split;
+      rows.forEach((r) => r.classList.toggle('is-rest', split && rest.includes(r.dataset.slug!)));
+
+      // Project sections
+      first.forEach((s) => zoneEl.appendChild(bySlug.get(s)!));
+      zoneEl.appendChild(exDivider);
+      rest.forEach((s) => zoneEl.appendChild(bySlug.get(s)!));
+      exDivider.hidden = !split;
+      exDividerText.textContent = split ? `${rest.length} more ${rest.length === 1 ? 'piece' : 'pieces'} of work outside ${label}.` : '';
+      relinkNext([...first, ...rest].map((s) => bySlug.get(s)!));
+
+      // Sticky bar
+      const bl = (s: string) => barLinks.querySelector<HTMLElement>(`[data-pbar-link="${s}"]`)!;
+      first.forEach((s) => barLinks.appendChild(bl(s)));
+      barLinks.appendChild(barSep);
+      rest.forEach((s) => barLinks.appendChild(bl(s)));
+      barSep.hidden = !split;
+
+      status.hidden = f === 'all';
+      status.textContent = f === 'all' ? '' : `Showing ${first.length} in ${label} first. The other ${rest.length} follow below.`;
+    };
+
     filters.forEach((b) =>
       b.addEventListener('click', () => {
-        const f = b.dataset.filter!;
         filters.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-        document.querySelectorAll<HTMLElement>('.index__list li').forEach((li) => {
-          li.hidden = f !== 'all' && !li.dataset.kinds!.split(' ').includes(f);
-        });
-        exhibits.forEach((ex) => ex.classList.toggle('is-dimmed', f !== 'all' && !ex.dataset.kinds!.split(' ').includes(f)));
+        applyFilter(b.dataset.filter!, labelOf(b));
       })
     );
 
@@ -475,7 +540,7 @@ const notes = [
       const r = zone.getBoundingClientRect();
       bar.classList.toggle('is-on', r.top < 120 && r.bottom > 200);
       let current = '';
-      for (const ex of exhibits) if (ex.getBoundingClientRect().top < window.innerHeight * 0.4) current = ex.dataset.exhibit!;
+      for (const ex of zone.querySelectorAll<HTMLElement>('[data-exhibit]')) if (ex.getBoundingClientRect().top < window.innerHeight * 0.4) current = ex.dataset.exhibit!;
       links.forEach((l) => {
         const on = l.dataset.pbarLink === current;
         l.classList.toggle('is-current', on);
