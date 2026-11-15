@@ -1,68 +1,20 @@
 ---
 const year = new Date().getFullYear();
-
-const columns = [
-  {
-    heading: 'Site',
-    links: [
-      { label: 'Experience', href: '/#experience' },
-      { label: 'How I build', href: '/#approach' },
-      { label: 'Projects', href: '/#projects' },
-      { label: 'About', href: '/about/' },
-    ],
-  },
-  {
-    heading: 'Work',
-    links: [
-      { label: 'HCP Persona Chatbot', href: '/work/hcp-persona-chatbot/' },
-      { label: 'RAG Eval Harness', href: '/work/rag-eval-harness/' },
-      { label: 'Outreach Agent', href: '/work/outreach-agent/' },
-      { label: 'Plan My Day', href: '/work/plan-my-day/' },
-      { label: 'Resume (PDF)', href: '/resume.pdf' },
-    ],
-  },
-  {
-    heading: 'Elsewhere',
-    links: [
-      { label: 'Email', href: 'mailto:aksh.iitdelhi@gmail.com' },
-      { label: 'GitHub', href: 'https://github.com/akshgoyal' },
-      { label: 'LinkedIn', href: 'https://linkedin.com/in/akshgoyal' },
-    ],
-  },
+const links = [
+  { label: 'Email', href: 'mailto:aksh.iitdelhi@gmail.com' },
+  { label: 'GitHub', href: 'https://github.com/AkshGoyal' },
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/akshgoyal' },
+  { label: 'Résumé', href: '/resume.pdf' },
+  { label: 'About', href: '/about/' },
 ];
 ---
 
-<footer class="border-t border-line">
-  <div class="mx-auto max-w-3xl px-6 py-12 sm:px-8">
-    <div class="grid gap-8 sm:grid-cols-3">
-      {
-        columns.map((column) => (
-          <div>
-            <h2 class="font-display text-[0.8125rem] font-semibold tracking-tight text-ink">
-              {column.heading}
-            </h2>
-            <ul class="mt-3 space-y-2 font-mono text-[0.75rem]">
-              {column.links.map((link) => (
-                <li>
-                  <a
-                    href={link.href}
-                    class="text-muted underline-offset-4 transition-colors hover:text-accent hover:underline"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))
-      }
-    </div>
-
-    <div
-      class="mt-10 flex flex-col gap-2 border-t border-line pt-6 font-mono text-[0.75rem] text-muted sm:flex-row sm:items-center sm:justify-between"
-    >
-      <span>&copy; {year} Aksh Goyal</span>
-      <span>Built with Astro, deployed on Vercel</span>
-    </div>
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <p>Every number on this site links to the code or the app it came from.</p>
+    <nav aria-label="Elsewhere">
+      {links.map((l) => <a href={l.href}>{l.label}</a>)}
+    </nav>
+    <p class="site-footer__small">&copy; {year} Aksh Goyal</p>
   </div>
 </footer>

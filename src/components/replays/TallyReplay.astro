@@ -1,0 +1,160 @@
+---
+// Illustration built from the repository's example data (ACME TRADERS, S3 SCREW, ...).
+// Real slips stay private because they name real customers.
+const lines = [
+  { hand: 'Pan Screw S3  250 Pc', item: 'S3 SCREW', qty: 250 },
+  { hand: 'Hex Nutt  500 Pcs', item: 'N3 NUT', qty: 500 },
+  { hand: 'Hing H4  40', item: 'H4 HINGE', qty: 40 },
+];
+---
+
+<div class="replay tally" data-replay="tally">
+  <div class="replay__bar">
+    <span class="replay__caption">What happens to one slip</span>
+    <div class="replay__controls" role="group" aria-label="Tally replay steps">
+      <button class="chip" type="button" data-go="0" aria-pressed="true">Photo arrives</button>
+      <button class="chip" type="button" data-go="1" aria-pressed="false">Bot reads it</button>
+      <button class="chip" type="button" data-go="2" aria-pressed="false">Owner corrects</button>
+      <button class="chip" type="button" data-go="3" aria-pressed="false">Saved</button>
+    </div>
+  </div>
+
+  <div class="tally__grid">
+    <figure class="tally__slip" aria-label="A handwritten delivery slip">
+      <div class="tally__slipHead"><span>M/s ACME</span><span>No. 14</span></div>
+      <div class="tally__slipDate">18/8</div>
+      {lines.map((l) => <div class="tally__hand">{l.hand}</div>)}
+    </figure>
+
+    <div class="tally__chat" aria-live="polite">
+      <div class="tally__bubble" data-from="1">
+        <div class="tally__bubbleHead">ACME TRADERS · Challan 14 · 18 Aug</div>
+        <table>
+          <tbody>
+            {
+              lines.map((l, i) => (
+                <tr>
+                  <td>{i + 1}</td>
+                  <td>{l.item}</td>
+                  <td class="tally__qty" data-qty={i}>{l.qty}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+        <div class="tally__hint">Matched to exact Tally stock names. Reply to fix anything.</div>
+      </div>
+      <div class="tally__bubble tally__bubble--you" data-from="2">line 2 is 300 <span>(voice note)</span></div>
+      <div class="tally__bubble" data-from="3">✅ Saved. It will be priced from the rates sheet and included in Saturday’s Tally file.</div>
+    </div>
+  </div>
+  <p class="replay__note">Illustration using the example data in the repository. Real slips name real customers, so they stay private.</p>
+</div>
+
+<style>
+  .tally__grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    min-height: 250px;
+  }
+  @media (max-width: 560px) {
+    .tally__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  .tally__slip {
+    margin: 0;
+    padding: 14px;
+    background: #fffdf3;
+    color: #26324a;
+    border: 1px solid #e7dfbf;
+    border-radius: 4px;
+    transform: rotate(-1.2deg);
+    font-family: 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+    font-size: 1rem;
+    line-height: 1.9;
+    background-image: repeating-linear-gradient(transparent 0 29px, #e9e3cc 29px 30px);
+  }
+  .tally__slipHead {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+  }
+  .tally__slipDate {
+    text-align: right;
+  }
+  .tally__chat {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+  }
+  .tally__bubble {
+    background: var(--color-surface);
+    border-radius: 12px;
+    border-bottom-left-radius: 4px;
+    padding: 10px 12px;
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+  .tally__bubble--you {
+    justify-self: end;
+    background: var(--color-ink);
+    color: var(--color-bg);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 4px;
+  }
+  .tally__bubble--you span {
+    opacity: 0.7;
+    font-size: 0.78rem;
+  }
+  .tally__bubbleHead {
+    font-weight: 650;
+    margin-bottom: 6px;
+  }
+  .tally__bubble table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  .tally__bubble td {
+    padding: 3px 4px;
+    border-top: 1px solid var(--color-line);
+  }
+  .tally__qty {
+    text-align: right;
+    font-weight: 650;
+  }
+  .tally__qty.is-changed {
+    background: color-mix(in srgb, var(--color-mark) 60%, transparent);
+  }
+  .tally__hint {
+    margin-top: 6px;
+    font-size: 0.78rem;
+    color: var(--color-muted);
+  }
+  [data-from].is-hidden {
+    display: none;
+  }
+</style>
+
+<script>
+  function initTally() {
+    document.querySelectorAll<HTMLElement>('[data-replay="tally"]').forEach((root) => {
+      const btns = root.querySelectorAll<HTMLButtonElement>('[data-go]');
+      const parts = root.querySelectorAll<HTMLElement>('[data-from]');
+      const q2 = root.querySelector<HTMLElement>('[data-qty="1"]')!;
+      const go = (n: number) => {
+        btns.forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.go) === n)));
+        parts.forEach((p) => p.classList.toggle('is-hidden', Number(p.dataset.from) > n));
+        const fixed = n >= 2;
+        q2.textContent = fixed ? '300' : '500';
+        q2.classList.toggle('is-changed', fixed);
+      };
+      btns.forEach((b) => b.addEventListener('click', () => go(Number(b.dataset.go))));
+      go(0);
+    });
+  }
+  initTally();
+  document.addEventListener('astro:after-swap', initTally);
+</script>

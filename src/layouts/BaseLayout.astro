@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import '../styles/site.css';
 import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
@@ -38,21 +39,6 @@ const ogImage = Astro.site ? new URL('/og.png', Astro.site).href : null;
         </>
       )
     }
-
-    <link
-      rel="preload"
-      href="/fonts/space-grotesk-latin-wght-normal.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/inter-latin-wght-normal.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
 
     <ClientRouter />
 
