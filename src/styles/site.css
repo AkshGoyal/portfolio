@@ -1315,3 +1315,157 @@ a.row:hover .row__title {
     min-width: 520px;
   }
 }
+
+/* ---------- phone redesign: swipe cards, tabs per project ---------- */
+
+.how > summary {
+  display: none;
+}
+.mtabs,
+.index__swipe {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .exhibit__body > .strip {
+    grid-column: 1 / -1;
+    margin-top: 4px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .exhibit__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 18px;
+  }
+  .exhibit__text {
+    display: contents;
+  }
+  .exhibit .figure {
+    order: 1;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .mtabs {
+    order: 2;
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 10px;
+    background: var(--color-surface);
+  }
+  .mtabs button {
+    flex: 1;
+    min-height: 40px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--color-muted);
+    font: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .mtabs button[aria-selected='true'] {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    box-shadow: 0 1px 2px rgb(20 33 61 / 0.12);
+  }
+  .exhibit__proof,
+  .exhibit__body > .strip,
+  .exhibit .how {
+    order: 3;
+    margin-top: 0;
+  }
+  .exhibit__links {
+    order: 4;
+    margin-top: 2px;
+  }
+  .exhibit [data-panel] {
+    display: none;
+  }
+  .exhibit[data-tab='demo'] [data-panel='demo'],
+  .exhibit[data-tab='screens'] [data-panel='screens'],
+  .exhibit[data-tab='details'] [data-panel='details'] {
+    display: block;
+  }
+  .exhibit__body > .strip .strip__row {
+    grid-auto-columns: 80%;
+  }
+  .exhibit__next {
+    margin-top: 18px;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Hero: plain headline on phones; the numbered proof list carries the evidence. */
+  .hero__claim {
+    font-size: 2.15rem;
+    line-height: 1.08;
+  }
+  .hero .cite {
+    border-bottom: 0;
+    background: none;
+  }
+  .hero .cite sup {
+    display: none;
+  }
+  .hero__who {
+    font-size: 1.05rem;
+  }
+  .hero__photo {
+    width: 64px;
+    height: 64px;
+  }
+  .hero__actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  /* Project index: swipeable cards. */
+  .index__list {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    border-top: 0;
+    margin-inline: calc(-1 * var(--gutter));
+    padding: 4px var(--gutter) 10px;
+    scrollbar-width: none;
+  }
+  .index__list > li {
+    flex: 0 0 74%;
+    scroll-snap-align: start;
+  }
+  .index__row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    height: 100%;
+    min-height: 150px;
+    padding: 16px;
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    background: var(--color-paper);
+  }
+  .index__tags {
+    margin-top: auto;
+    justify-content: flex-start;
+  }
+  .index__list > li.index__divider {
+    flex: 0 0 auto;
+    align-self: center;
+    border: 0;
+    padding: 0 4px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+  .index__swipe {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.82rem;
+    color: var(--color-muted);
+  }
+}

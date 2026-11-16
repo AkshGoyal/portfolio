@@ -48,7 +48,7 @@ const notes = [
 ---
 
 <BaseLayout
-  title="Aksh Goyal: forward-deployed AI product builder"
+  title="Aksh Goyal — AI products and pipelines, shipped and proven"
   description="I sit with the people who have the problem, ship the AI product they use, and prove it works. Seven projects, three live, every claim linked to its evidence."
 >
   <section class="hero wrap" data-hero>
@@ -121,6 +121,7 @@ const notes = [
         ))}
         <li class="index__divider" data-index-divider aria-hidden="true" hidden>The rest of the work</li>
       </ol>
+      <p class="index__swipe">Swipe for all {projects.length}, or tap one to jump to it.</p>
     </div>
   </section>
 
@@ -144,7 +145,7 @@ const notes = [
         const Replay = replays[p.replay];
         const next = projects[i + 1];
         return (
-          <article class="exhibit" id={p.slug} data-exhibit={p.slug} data-kinds={p.kinds.join(' ')} data-title={p.title} data-short={p.short} aria-labelledby={`${p.slug}-title`}>
+          <article class="exhibit" id={p.slug} data-exhibit={p.slug} data-kinds={p.kinds.join(' ')} data-title={p.title} data-short={p.short} data-tab="demo" aria-labelledby={`${p.slug}-title`}>
             <header class="exhibit__head">
               <h3 class="exhibit__title" id={`${p.slug}-title`}>
                 {p.title}
@@ -173,7 +174,7 @@ const notes = [
                   <span class="figure__num">{p.evidence.figure}</span>
                   <span class="figure__label">{p.evidence.label}</span>
                 </div>
-                <details class="how" data-how open>
+                <details class="how" data-how data-panel="details" open>
                   <summary>How I built it</summary>
                   <dl class="evidence-lines">
                     <div><dt>For</dt><dd>{p.forWhom}</dd></div>
@@ -196,23 +197,28 @@ const notes = [
                   );
                 })()}
               </div>
-              <div class="exhibit__proof" data-try={p.slug}>
+              <div class="mtabs" role="tablist" aria-label={`${p.title}: views`}>
+                <button type="button" role="tab" data-tab-btn="demo" aria-selected="true">Try it</button>
+                {p.shots.length > 0 && <button type="button" role="tab" data-tab-btn="screens" aria-selected="false">Screens</button>}
+                <button type="button" role="tab" data-tab-btn="details" aria-selected="false">How I built it</button>
+              </div>
+              <div class="exhibit__proof" data-try={p.slug} data-panel="demo">
                 <Replay slides={p.slides} title={p.title} pdf={p.links.find((l) => l.href.endsWith('.pdf'))?.href} />
               </div>
+              {p.shots.length > 0 && (
+                <div class="strip" data-panel="screens" aria-label={`${p.title} screenshots`}>
+                  <p class="strip__head">Screens from the real product <span>Click to enlarge</span></p>
+                  <div class="strip__row">
+                    {p.shots.map((sh, j) => (
+                      <button type="button" class="strip__item" data-gallery={JSON.stringify(p.shots)} data-gallery-start={j} data-gallery-title={p.title} data-explore={p.slug} aria-label={`Enlarge: ${sh.alt}`}>
+                        <img src={sh.src} alt={sh.alt} loading="lazy" decoding="async" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {p.shots.length > 0 && (
-              <div class="strip" aria-label={`${p.title} screenshots`}>
-                <p class="strip__head">Screens from the real product <span>Click to enlarge</span></p>
-                <div class="strip__row">
-                  {p.shots.map((sh, j) => (
-                    <button type="button" class="strip__item" data-gallery={JSON.stringify(p.shots)} data-gallery-start={j} data-gallery-title={p.title} data-explore={p.slug} aria-label={`Enlarge: ${sh.alt}`}>
-                      <img src={sh.src} alt={sh.alt} loading="lazy" decoding="async" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {next ? (
               <a class="exhibit__next" href={`#${next.slug}`}>
@@ -586,14 +592,20 @@ const notes = [
 
     render();
   }
-  // "How I built it": always open on wide screens, collapsed by default on phones.
-  function initHow() {
-    const wide = window.matchMedia('(min-width: 1024px)');
-    const set = () => document.querySelectorAll<HTMLDetailsElement>('[data-how]').forEach((d) => (d.open = wide.matches));
-    set();
-    wide.addEventListener('change', set);
+  // Phone tabs per project: Try it / Screens / How I built it. On laptops all three show at once.
+  function initTabs() {
+    document.querySelectorAll<HTMLElement>('[data-exhibit]').forEach((ex) => {
+      const btns = ex.querySelectorAll<HTMLButtonElement>('[data-tab-btn]');
+      btns.forEach((b) =>
+        b.addEventListener('click', () => {
+          ex.dataset.tab = b.dataset.tabBtn!;
+          btns.forEach((x) => x.setAttribute('aria-selected', String(x === b)));
+        })
+      );
+      ex.querySelectorAll<HTMLDetailsElement>('[data-how]').forEach((d) => (d.open = true));
+    });
   }
-  initHow();
+  initTabs();
   initWork();
   document.addEventListener('astro:after-swap', initWork);
 </script>
