@@ -28,19 +28,19 @@ const isLive = (href: string) => !href.includes('github.com') && !href.startsWit
 const notes = [
   {
     title: '15 months inside a global pharma company’s vaccines team',
-    body: 'Sat with its marketing, medical and bidding teams and turned briefs with no precedent into tools they use. I also build for my family’s cotton-thread business and a small manufacturer.',
+    body: 'Turned briefs with no precedent into tools its teams use.',
     href: '#experience',
     link: 'Experience',
   },
   {
     title: 'Three products running live today',
-    body: 'Duely, Grounded Outreach and PharmaGraph each have a link you can open now; the rest have public code.',
+    body: 'Open Duely, Grounded Outreach or PharmaGraph and use them.',
     href: '#work',
     link: 'See the work',
   },
   {
     title: '0 wrong facts in 15 real prospect emails. 62% to 94% accuracy at work.',
-    body: 'I write the evaluation before tuning anything, so the number means something and a failure says where to look.',
+    body: 'I write the evaluation before tuning anything.',
     href: '#grounded-outreach',
     link: 'The evaluation',
   },
@@ -142,19 +142,15 @@ const notes = [
     {
       projects.map((p, i) => {
         const Replay = replays[p.replay];
-        const noted = p.links.find((l) => l.note);
         const next = projects[i + 1];
         return (
           <article class="exhibit" id={p.slug} data-exhibit={p.slug} data-kinds={p.kinds.join(' ')} data-title={p.title} data-short={p.short} aria-labelledby={`${p.slug}-title`}>
             <header class="exhibit__head">
-              <div>
-                <h3 class="exhibit__title" id={`${p.slug}-title`}>{p.title}</h3>
-                <p class="exhibit__line">{p.line}</p>
-              </div>
-              <div class="exhibit__tags">
-                {p.kinds.map((k) => <span class="tag">{kindLabels[k]}</span>)}
-                {p.status && <span class="tag tag--quiet">{p.status}</span>}
-              </div>
+              <h3 class="exhibit__title" id={`${p.slug}-title`}>
+                {p.title}
+                {p.status && <span class="exhibit__status">{p.status}</span>}
+              </h3>
+              <p class="exhibit__line">{p.line}</p>
             </header>
 
             {(() => {
@@ -177,20 +173,28 @@ const notes = [
                   <span class="figure__num">{p.evidence.figure}</span>
                   <span class="figure__label">{p.evidence.label}</span>
                 </div>
-                <dl class="evidence-lines">
-                  <div><dt>Who it’s for</dt><dd>{p.forWhom}</dd></div>
-                  <div><dt>Ownership</dt><dd>{p.ownership}</dd></div>
-                  <div><dt>Product call</dt><dd>{p.product}</dd></div>
-                  <div><dt>{p.pipelineLabel ?? 'Pipeline'}</dt><dd>{p.pipeline}</dd></div>
-                </dl>
-                <p class="exhibit__stack">Built with {p.stack.join(', ')}</p>
-                <div class="exhibit__links">
-                  {p.links.map((l, j) => (
-                    <a class={j === 0 ? 'btn btn--solid' : 'btn'} href={l.href} data-explore={p.slug}>{l.label}</a>
-                  ))}
-                  {p.caseStudy && <a class="textlink" href={p.caseStudy}>Read the case study</a>}
-                  {noted && <span class="exhibit__linknote">{noted.note}</span>}
-                </div>
+                <details class="how" data-how open>
+                  <summary>How I built it</summary>
+                  <dl class="evidence-lines">
+                    <div><dt>For</dt><dd>{p.forWhom}</dd></div>
+                    <div><dt>Ownership</dt><dd>{p.ownership}</dd></div>
+                    <div><dt>Product call</dt><dd>{p.product}</dd></div>
+                    <div><dt>{p.pipelineLabel ?? 'Pipeline'}</dt><dd>{p.pipeline}</dd></div>
+                  </dl>
+                  <p class="exhibit__stack">Built with {p.stack.join(', ')}</p>
+                </details>
+                {(() => {
+                  const rest = p.links.filter((l) => !isLive(l.href));
+                  const hasLive = p.links.some((l) => isLive(l.href));
+                  return (
+                    <div class="exhibit__links">
+                      {rest.map((l, j) => (
+                        <a class={!hasLive && j === 0 ? 'btn btn--solid' : 'btn'} href={l.href} data-explore={p.slug}>{l.label}</a>
+                      ))}
+                      {p.caseStudy && <a class="textlink" href={p.caseStudy}>Read the case study</a>}
+                    </div>
+                  );
+                })()}
               </div>
               <div class="exhibit__proof" data-try={p.slug}>
                 <Replay slides={p.slides} title={p.title} pdf={p.links.find((l) => l.href.endsWith('.pdf'))?.href} />
@@ -199,15 +203,11 @@ const notes = [
 
             {p.shots.length > 0 && (
               <div class="strip" aria-label={`${p.title} screenshots`}>
-                <div class="strip__head">
-                  <span>Screens from the real product</span>
-                  <span class="strip__hint">{p.shots.length} {p.shots.length === 1 ? 'image' : 'images'}, click to enlarge</span>
-                </div>
+                <p class="strip__head">Screens from the real product <span>Click to enlarge</span></p>
                 <div class="strip__row">
                   {p.shots.map((sh, j) => (
-                    <button type="button" class="strip__item" data-gallery={JSON.stringify(p.shots)} data-gallery-start={j} data-gallery-title={p.title} data-explore={p.slug}>
+                    <button type="button" class="strip__item" data-gallery={JSON.stringify(p.shots)} data-gallery-start={j} data-gallery-title={p.title} data-explore={p.slug} aria-label={`Enlarge: ${sh.alt}`}>
                       <img src={sh.src} alt={sh.alt} loading="lazy" decoding="async" />
-                      <span class="strip__cap">{sh.alt}</span>
                     </button>
                   ))}
                 </div>
@@ -586,6 +586,14 @@ const notes = [
 
     render();
   }
+  // "How I built it": always open on wide screens, collapsed by default on phones.
+  function initHow() {
+    const wide = window.matchMedia('(min-width: 1024px)');
+    const set = () => document.querySelectorAll<HTMLDetailsElement>('[data-how]').forEach((d) => (d.open = wide.matches));
+    set();
+    wide.addEventListener('change', set);
+  }
+  initHow();
   initWork();
   document.addEventListener('astro:after-swap', initWork);
 </script>
