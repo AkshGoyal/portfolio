@@ -27,41 +27,44 @@ const isLive = (href: string) => !href.includes('github.com') && !href.startsWit
 
 const notes = [
   {
-    title: '15 months inside a global pharma company’s vaccines team',
-    body: 'Turned briefs with no precedent into tools its teams use.',
+    label: 'Real problems',
+    title: '15 months embedded with a global pharma team',
+    body: 'I sat with its marketing, medical and bidding teams and shipped tools about 100 people there use.',
     href: '#experience',
-    link: 'Experience',
+    link: 'See the experience',
   },
   {
-    title: 'Three products running live today',
-    body: 'Open Duely, Grounded Outreach or PharmaGraph and use them.',
+    label: 'Live products',
+    title: 'Three AI products you can open today',
+    body: 'Duely, Grounded Outreach and PharmaGraph are live. Try them, then read the code.',
     href: '#work',
     link: 'See the work',
   },
   {
-    title: 'I measure before I tune',
-    body: 'At work, I built the evaluation for a physician chatbot and used it to raise its score from 62% to 94%. My outreach tool wrote emails to 15 real executives with 0 wrong facts.',
+    label: 'Measured results',
+    title: '62% to 94%, and 0 wrong facts',
+    body: 'I raised a physician chatbot’s evaluation score from 62% to 94%. My outreach tool wrote to 15 real executives without a single wrong fact.',
     href: '#rag-eval-harness',
-    link: 'See my evaluation harness',
+    link: 'See how I evaluate',
   },
 ];
 ---
 
 <BaseLayout
-  title="Aksh Goyal — AI products and pipelines, shipped and proven"
-  description="I sit with the people who have the problem, ship the AI product they use, and prove it works. Seven projects, three live, every claim linked to its evidence."
+  title="Aksh Goyal — AI products and pipelines, shipped end to end"
+  description="Give me a messy problem. I’ll ship the AI product and show you the numbers. Seven products, three live, and two product strategy cases."
 >
   <section class="hero wrap" data-hero>
     <svg class="traces" aria-hidden="true" data-traces></svg>
     <div class="hero__grid">
       <div>
         <h1 class="hero__claim">
-          I <a class="cite" href="#note-1" data-cite="1">sit with the people who have the problem<sup>1</sup></a>, <a class="cite" href="#note-2" data-cite="2">ship the AI product they use<sup>2</sup></a>, and <a class="cite" href="#note-3" data-cite="3">prove it works<sup>3</sup></a>.
+          Give me a <a class="cite" href="#note-1" data-cite="1">messy problem</a>. I’ll <a class="cite" href="#note-2" data-cite="2">ship the AI product</a> and <a class="cite" href="#note-3" data-cite="3">show you the numbers</a>.
         </h1>
         <p class="hero__who">
           <img class="hero__photo" src="/aksh.png" width="88" height="88" alt="Aksh Goyal" />
-          <strong>Aksh Goyal</strong>, IIT Delhi 2025. I’m looking for AI product and forward-deployed roles on
-          small teams that move fast and expect ownership.
+          <strong>Aksh Goyal</strong>, IIT Delhi 2025. I thrive in high-ownership roles, and I’m looking for AI
+          product or forward-deployed work on a small team that moves fast.
         </p>
         <div class="hero__actions">
           <a class="btn btn--solid" href="mailto:aksh.iitdelhi@gmail.com">Email me</a>
@@ -70,11 +73,11 @@ const notes = [
         </div>
       </div>
 
-      <ol class="notes" aria-label="Sources for the claims above">
+      <ol class="notes" aria-label="The evidence behind the headline">
         {
           notes.map((n, i) => (
             <li class="note" id={`note-${i + 1}`} data-note={i + 1}>
-              <div class="note__num">{i + 1}</div>
+              <div class="note__num">{n.label}</div>
               <div class="note__title">{n.title}</div>
               <p class="note__body">
                 {n.body} <a href={n.href}>{n.link}</a>

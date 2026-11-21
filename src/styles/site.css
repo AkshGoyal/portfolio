@@ -1469,3 +1469,25 @@ a.row:hover .row__title {
     color: var(--color-muted);
   }
 }
+
+/* Hero v3: quiet citations, labelled evidence notes. */
+.hero .cite {
+  border-bottom: 2px solid color-mix(in srgb, var(--color-trace) 55%, transparent);
+  border-radius: 0;
+}
+.note__num {
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: var(--color-trace);
+}
+@media (max-width: 1023px) {
+  .note {
+    display: block;
+  }
+  .note__num {
+    grid-row: auto;
+    padding-top: 0;
+    margin-bottom: 2px;
+  }
+}
