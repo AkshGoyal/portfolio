@@ -153,8 +153,8 @@ export const projects: Project[] = [
     product:
       'The owner already runs the business from a phone and a chat, so the bot lives there instead of in a new app. Nothing is saved without a human tap.',
     pipeline:
-      'Vision model with JSON-schema output, validation rules for dates and unusual items, and a tool-using assistant that can only propose rate changes.',
-    stack: ['Python', 'Telegram', 'OpenRouter', 'AWS Lambda', 'DynamoDB'],
+      'Two vision models, Gemini and DeepSeek Janus Pro, as backups for each other, with JSON-schema output. Fuzzy matching against the Tally masters, validation rules, and a weekly Tally XML import.',
+    stack: ['Python', 'Telegram', 'Gemini', 'DeepSeek Janus Pro', 'AWS Lambda'],
     links: [{ label: 'Read the code', href: 'https://github.com/AkshGoyal/tally-slip-bot' }],
     replay: 'tally',
     shots: [],
