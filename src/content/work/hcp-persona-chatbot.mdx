@@ -76,10 +76,10 @@ searches.
     {
       kind: 'guard',
       label: 'Evaluation framework',
-      note: 'A fixed set of scenarios and known failure paths, scored on every change, so “this feels better” could be replaced with a number.',
+      note: 'About 100 golden questions, each with an expected answer and the source chunks it should come from, scored on every change, so “this feels better” could be replaced with a number.',
     },
   ]}
-  caption="Routing and hybrid retrieval were the two decisions that moved accuracy the most — and I only know that because the evaluation set existed first."
+  caption="Every change to chunking, embeddings or retrieval was scored against the same golden set, so improvements were measured rather than felt."
 />
 
 ## Hard parts and decisions
@@ -88,10 +88,13 @@ searches.
   decision I'd defend hardest. RAG systems are easy to fiddle with and almost
   impossible to improve blind — every change makes some answers better and some
   worse, and without a fixed scorecard you optimise for whichever example you
-  happened to test. I wrote the scenarios and the failure paths first, then
-  iterated chunking, embedding and search strategy against measured results.
-  The system went from **62% to 94%** on that evaluation set. The number matters
-  much less than the fact that there was a number.
+  happened to test. With the team, we built a golden set of about 100 questions
+  first, each with an expected answer and the source chunks it should be drawn
+  from, scored at two levels: did retrieval find the right chunks, and was the
+  answer right. Then I ran the failure analysis and iterated chunking,
+  embeddings and retrieval against it. The overall score went from **62% to
+  94%** under the same criteria. The number matters much less than the fact
+  that there was a number.
 - **Hybrid retrieval, because embeddings lose the exact words.** Semantic search
   is excellent at "what do physicians worry about with this class of vaccine"
   and unreliable at a specific brand name or trial code, where near-miss
@@ -126,8 +129,9 @@ bidding teams produced more than one thing:
 - **Four web scrapers** turning undocumented conference sites — no API, no
   export, structure changing between years — into structured datasets the
   medical team could query.
-- **An end-to-end SQL analysis of vaccine-effectiveness data** that sat behind a
-  European surveillance report.
+- **A SQL analysis of European doses, cases and rotavirus strain patterns**
+  that found the dominant strains in each country. Marketing leadership changed
+  country-level campaign wording to match.
 
 ## What this taught me
 

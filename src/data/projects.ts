@@ -220,7 +220,7 @@ export const projects: Project[] = [
       label: 'recall after fixing how test questions named their contracts, a design fault caught at the first end-to-end run.',
     },
     ownership:
-      'Ingested and fingerprinted 510 contracts, built 30 expert-annotated test cases, a cost-capped model layer and 119 tests that need no API key.',
+      'Ingested and fingerprinted 510 contracts, built 30 expert-annotated test cases, a cost-capped model layer and 187 tests that need no API key.',
     product:
       'Scores retrieval and generation separately because they need opposite fixes, and reports errors next to scores so 90% never means 90% of what didn’t crash.',
     pipeline:
